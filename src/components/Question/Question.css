@@ -1,0 +1,20 @@
+.question {
+  display: block;
+  max-width: 80%;
+  margin: 0 auto 1.33rem;
+  color: white;
+  background: #2D88FF;
+  padding: 1.33rem; 
+  border-radius: 10px;
+}
+
+.question p {
+  margin: 0rem 0 1.33rem;
+}
+
+.question > :last-child {
+  margin-bottom: 0;
+}
+
+
+

@@ -1,0 +1,28 @@
+{
+  "name": "questions",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@types/jest": "^19.2.3",
+    "@types/node": "^7.0.18",
+    "@types/react": "^15.0.24",
+    "@types/react-dom": "^15.5.0",
+    "@types/socket.io-client": "^1.4.29",
+    "mobx": "^3.2.1",
+    "mobx-react": "^4.2.2",
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4",
+    "redux-thunk": "^2.2.0",
+    "socket.io-client": "^2.0.1"
+  },
+  "devDependencies": {
+    "@types/react-redux": "^4.4.46",
+    "react-scripts-ts": "1.4.0"
+  },
+  "scripts": {
+    "start": "react-scripts-ts start",
+    "build": "react-scripts-ts build",
+    "test": "react-scripts-ts test --env=jsdom",
+    "eject": "react-scripts-ts eject"
+  }
+}

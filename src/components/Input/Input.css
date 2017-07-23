@@ -1,0 +1,11 @@
+.text-input {
+  line-height: 1.33rem;
+  font-size: 1.33rem;
+}
+
+.text-input input {
+  border: 1px solid #ddd; 
+  padding: 0.6667rem 1rem;
+  -webkit-appearance: none;
+  
+}
