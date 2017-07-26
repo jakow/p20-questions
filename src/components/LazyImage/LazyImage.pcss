@@ -1,0 +1,24 @@
+.lazyImageContainer {
+
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -16px;
+  margin-top: -16px;
+  animation: spin 500ms linear infinite;
+  background-image: url('./spinner.svg')
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

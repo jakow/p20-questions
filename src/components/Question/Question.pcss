@@ -1,11 +1,18 @@
+@import '../../variables.pcss';
+
 .question {
   display: block;
   max-width: 80%;
   margin: 0 auto 1.33rem;
-  color: white;
-  background: #2D88FF;
+  color: black;
+  background: #ddd;
   padding: 1.33rem; 
   border-radius: 10px;
+}
+
+.accepted.question {
+  background: var(--colorSecondary);
+  color: white;
 }
 
 .question p {

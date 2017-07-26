@@ -1,14 +1,15 @@
 import * as React from 'react';
 import {QuestionDocument} from '../../models/Document';
 import Question from '../Question'; 
-import './QuestionList.css';
+
+const style = require('./QuestionList.css');
 
 export interface QuestionListProps {
   questions: QuestionDocument[];
 }
 const QuestionList = ({questions}: QuestionListProps) => {
   return (
-  <ol className="question-list">
+  <ol className={style.questionList}>
     {questions.map((q) => (<li key={q._id}><Question question={q}/></li>))}
   </ol>);
 };

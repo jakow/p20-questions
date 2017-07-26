@@ -1,13 +1,19 @@
 import * as React from 'react';
-import {observer} from 'mobx-react';
+import {observer, inject} from 'mobx-react';
 import QuestionList from '../../components/QuestionList';
-import {QuestionStore} from '../../models/Store';
+import {QuestionStore} from '../../models/QuestionStore';
 // import {QuestionDocument} from '../../data/Document';
+
 interface CurrentQuestionListProps {
-  store: QuestionStore;
+  questionStore?: QuestionStore;
 }
-const CurrentQuestionList = observer(({store}: CurrentQuestionListProps) => (
-  <QuestionList questions={store.questionsByDateAdded}/>
-));
+
+@inject('questionStore') 
+@observer 
+class CurrentQuestionList extends React.Component<CurrentQuestionListProps, {}> {
+  render () {
+    return (<QuestionList questions={this.props.questionStore.questionsByDateAdded}/>);
+  }
+}
 
 export default CurrentQuestionList;

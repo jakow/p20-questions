@@ -1,7 +1,6 @@
 import * as React from 'react';
-import './Input.css';
-
-const ENTER = 13;
+import * as classnames from 'classnames';
+const style = require('./Input.pcss');
 
 interface InputState {
   value: string;
@@ -9,35 +8,46 @@ interface InputState {
 
 interface InputProps {
   id: string;
-  type?: string;
-  onChange?: (val: string) => void;
-  onEnter?: (inputValue: string) => void;
+  type?: 'text' | 'password' | 'tel' | 'url';
+  onChange?: (val: React.ChangeEvent<HTMLInputElement>) => void;
+  onKeyDown?: (val: React.KeyboardEvent<HTMLInputElement>) => void;
+  // onEnter?: (inputValue: string) => void;
   placeholder?: string;
   label?: string;
+  labelAsPlaceholder?: boolean;
   className?: string;
-
+  autoComplete?: 'on' | 'off';
 }
 
+/**
+ *  use this component from text inputs only.
+ */
 export default class Input extends React.Component<InputProps, InputState> {
   static defaultProps: Partial<InputProps> = {
     type: 'text',
     className: '',
+    labelAsPlaceholder: false,
+    autoComplete: 'off',
   };
 
   constructor(props: InputProps) {
     super(props);
     this.state = {value: ''};
   }
- render() {
-   return (
-     <div className={this.props.className + ' text-input'}>
-      <input placeholder={this.props.placeholder}
-        type={this.props.type}
-        value={this.state.value} 
-        onChange={this.onChange}
-        onKeyDown={(event) => this.detectEnter(event)}
-        id={this.props.id}/>
-      {this.props.label ? <label htmlFor={this.props.id}>{this.props.label}</label> : null}
+  render() {
+    const {placeholder, className, type, autoComplete, id, label, labelAsPlaceholder} = this.props;
+    return (
+    <div className={classnames(style.input, className)}>
+    <input placeholder={placeholder}
+      autoComplete={autoComplete}
+      type={type}
+      value={this.state.value} 
+      onChange={this.onChange}
+      onKeyDown={this.onKeyDown}
+      id={id}/>
+    {label ? 
+      <label className={labelAsPlaceholder ? style.placeholderLabel : style.label} htmlFor={id}>{label}</label> :
+      null}
     </div>);
  }
 
@@ -45,15 +55,22 @@ export default class Input extends React.Component<InputProps, InputState> {
    const value = event.target.value;
    this.setState({value});
    if (this.props.onChange) {
-     this.props.onChange(value);
+     this.props.onChange(event);
    }
  }
 
- detectEnter(event: React.KeyboardEvent<HTMLInputElement>) {
-   if (event.keyCode === ENTER && this.props.onEnter) {
-    this.props.onEnter(this.state.value);
-    event.preventDefault();
+ onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+   if (this.props.onKeyDown) {
+     this.props.onKeyDown(event);
    }
  }
+
+
+//  detectEnter(event: React.KeyboardEvent<HTMLInputElement>) {
+//    if (event.keyCode === ENTER && this.props.onEnter) {
+//     this.props.onEnter(this.state.value);
+//     event.preventDefault();
+//    }
+//  }
 
 }

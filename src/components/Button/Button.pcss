@@ -1,0 +1,45 @@
+@import '../../variables.pcss';
+
+:root {
+  --buttonColor: var(--colorSecondary);
+  --textColor: white;
+}
+
+
+[type="submit"], [type="button"], [type="reset"] {
+  outline: none;
+}
+
+.base {
+  -webkit-appearance: none;
+  display: inline-block;
+  border: none;
+  padding: 0.5rem 1rem;
+  line-height: 1.5rem;
+  cursor: pointer;
+}
+
+.normal {
+  color: var(--textColor);
+  background-color: var(--buttonColor);
+  box-shadow: 0 1px 7px 0 rgba(0,0,0, 0.1);
+  text-align: center;
+  // font-size: 1.33rem;
+  &:hover {
+    background-color: color(var(--buttonColor) shade(5%));
+  }
+}
+
+.transparent {
+  color: var(--buttonColor);
+  background: none;
+}
+
+.hollow {
+  background: none;
+  color: var(--buttonColor);
+  border: 2px solid var(--buttonColor);
+}
+
+
+

@@ -1,7 +1,7 @@
-type HasId = {_id: string, __v: string};
+type HasId = {_id: string};
 export type Document<T> = T & HasId;
 
-interface Speaker {
+interface Person {
   name: string;
   position: string;
   company: string;
@@ -9,7 +9,9 @@ interface Speaker {
   description: string;
 }
 
-export type SpeakerDocument = Document<Speaker>;
+export type PersonDocument = Document<Person>;
+
+type Id = string;
 
 interface Event {
   name: string;
@@ -19,21 +21,22 @@ interface Event {
     start: string;
     end: string;
   };
-  speakers: SpeakerDocument[];
+  speakers: PersonDocument[];
   date: Date;
   venue: string;
 }
 
 export type EventDocument = Document<Event>;
 
-interface Question {
+export interface Question {
   text: string;
-  askedBy: string;
-  toPerson: SpeakerDocument;
-  forEvent: EventDocument;
-  dateAccepted?: string; // TODO: auto date conversion?
+  dateAdded: Date | string;
   accepted: boolean;
-  
+  archived: boolean;
+  askedBy?: string;
+  toPerson?: PersonDocument | Id;
+  forEvent?: EventDocument | Id;
+  dateAccepted?: Date | string;
 }
 
 export type QuestionDocument = Document<Question>;

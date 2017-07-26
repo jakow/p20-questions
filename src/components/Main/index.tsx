@@ -1,12 +1,16 @@
 import * as React from 'react';
-import './Main.css';
 import CurrentQuestionList from '../../containers/CurrentQuestionList';
-import QuestionInput from '../../containers/QuestionInput';
-import {questionStore} from '../../App';
-const Main = (props: React.Props<{}>) => (
-  <main className="main">
-    <CurrentQuestionList store={questionStore}/>
-    <QuestionInput/>
+const style = require('./Main.pcss');
+import QuestionInputPanel from '../../containers/QuestionInputPanel';
+
+const Main = () => (
+  <main className={style.main}>
+    <div className={style.mainTop}>
+      <CurrentQuestionList/>
+    </div>
+    <div className={style.mainBottom}>
+      <QuestionInputPanel show={true}/>
+    </div>
   </main>);
 
 export default Main;

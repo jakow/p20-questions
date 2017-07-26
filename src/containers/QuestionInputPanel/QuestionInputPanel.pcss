@@ -1,0 +1,37 @@
+@import '../../variables.pcss';
+
+
+.overlay {
+  /* relies on the Main container having a position: relative */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.75);
+
+}
+.questionForm {
+  position: relative;
+}
+.questionInput {
+  overflow: hidden;
+  position: relative;
+  padding: 0;
+  margin: 0;
+  & input {
+    border-radius: 0;
+    padding: 1rem;
+    margin: 0;
+    border: none;
+    border-top: 1px solid #ddd;
+    
+  }
+}
+
+.questionSubmit {
+  position: absolute;
+  top: 0.5rem;
+  right: 0;
+  color: #E2445C;
+}

@@ -1,0 +1,36 @@
+{
+    "name": "@types/react-modal",
+    "version": "1.6.8",
+    "description": "TypeScript definitions for react-modal",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Rajab Shakirov",
+            "url": "https://github.com/radziksh"
+        },
+        {
+            "name": "Drew Noakes",
+            "url": "https://github.com/drewnoakes"
+        },
+        {
+            "name": "Thomas B Homburg",
+            "url": "https://github.com/homburg"
+        },
+        {
+            "name": "Tatu Tamminen",
+            "url": "https://github.com/ttamminen"
+        }
+    ],
+    "main": "",
+    "repository": {
+        "type": "git",
+        "url": "https://www.github.com/DefinitelyTyped/DefinitelyTyped.git"
+    },
+    "scripts": {},
+    "dependencies": {
+        "@types/react": "*"
+    },
+    "peerDependencies": {},
+    "typesPublisherContentHash": "154b67156d2a71b945be7be3c96044e2098029877a759b1367aec577b5ad90c9",
+    "typeScriptVersion": "2.3"
+}

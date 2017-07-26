@@ -1,0 +1,40 @@
+.modal {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: white;
+  min-width: 300px;
+}
+
+.overlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: opacity 200ms ease-in-out;
+  background-color: rgba(255,255,255,0.8);
+  opacity: 0;
+}
+
+.overlay_afterOpen {
+  opacity: 1;
+}
+
+.overlay_beforeClose {
+  opacity: 0;
+}
+
+.header {
+  text-align: center;
+  background: #fafafa;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.body {
+  padding: 1rem 1.25rem;
+}
