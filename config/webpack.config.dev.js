@@ -2,6 +2,7 @@
 
 const autoprefixer = require('autoprefixer');
 const cssnext = require('postcss-cssnext');
+const assets = require('postcss-assets');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin');
@@ -167,6 +168,7 @@ module.exports = {
       //   ]
       // }),
       cssnext(),
+      assets(),
     ];
   },
   plugins: [

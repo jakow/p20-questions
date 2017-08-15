@@ -1,8 +1,5 @@
 @import '../../variables.pcss';
 
-:root {
-  --outlineColor: color(var(--colorSecondary) tint(60%));
-}
 
 .input {
   position: relative;
@@ -10,7 +7,7 @@
   margin-bottom: 1.5rem;
 }
 
-.input input {
+.input input, .input textarea {
   display: block;
   border: 1px solid #ddd;
   width: 100%;
@@ -20,11 +17,15 @@
   outline: none;
   margin: 0;
   -webkit-appearance: none;
-  font-weight: 300;
+  color: var(--textColor);
   border-radius: 8px;
 }
 
-.input input:focus {
+.input textarea {
+  resize: none; /* handles auto-resizing */
+}
+
+.input input:focus, .input textarea:focus {
   box-shadow: 0 0 0 2px var(--outlineColor);
   border-color: var(--outlineColor);
   // outline-offset: 0px;
@@ -33,9 +34,14 @@
 .label {
   position: absolute;
   top: 0;
-  font-weight: 300;
 }
 
 .placeholderLabel {
+  top: 50%;
   position: absolute;
+  color: var(--textGray);
+  font-weight: 400;
+  line-height: 1rem;
+  margin-top: -0.5rem;
+  left: 1rem;
 }

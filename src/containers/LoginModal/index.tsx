@@ -1,9 +1,9 @@
 import * as React from 'react';
 import Modal from 'react-modal';
 import * as classnames from 'classnames';
-import {observer} from 'mobx-react';
-import uiStore from '../../models/UiStore';
-import apiStore from '../../models/ApiStore';
+import {observer, inject} from 'mobx-react';
+import {UiStore} from '../../models/UiStore';
+import {ApiStore} from '../../models/ApiStore';
 import {ModalHeader, ModalBody} from '../../components/Modal';
 const coreStyle = require('../../components/Modal/Modal.pcss');
 const style = require('./LoginModal.pcss');
@@ -12,9 +12,24 @@ import Button from '../../components/Button';
 
 Modal.setAppElement(document.getElementById('app') as HTMLElement);
 
+interface LoginModalProps {
+  uiStore?: UiStore;
+  apiStore?: ApiStore;
+}
+
+@inject('uiStore', 'apiStore')
 @observer
-export default class LoginModal extends React.Component<null, null> {
+export default class LoginModal extends React.Component<LoginModalProps, null> {
+  onInputChange = (field: string, value: string) => {
+    if (field === 'username') {
+      this.props.apiStore.username = value;
+    } else {
+      this.props.apiStore.password = value;
+    }
+  }
+  
   render() {
+    const {uiStore, apiStore} = this.props;
     return (
       <Modal isOpen={uiStore.loginModalOpen} 
       contentLabel="login modal"
@@ -34,12 +49,24 @@ export default class LoginModal extends React.Component<null, null> {
       <ModalHeader>Log in to Questions</ModalHeader>
       <ModalBody>
         <form id="login-form" method="post" onSubmit={(ev) => this.onSubmit(ev)}> 
-          <Input type="text" id="username" label="Username" 
-            onChange={(e) => apiStore.username = e.target.value}/> 
-          <Input type="password" id="password" label="Password" 
-            onChange={(e) => apiStore.password = e.target.value}/> 
-          <Button style="normal" type="submit">Log in</Button> 
-        </form> 
+          <Input
+            autoFocus={true}  
+            name="username"
+            type="email" 
+            id="login-username" 
+            label="Username" 
+            value={apiStore.username}
+            onChange={this.onInputChange}/> 
+          <Input 
+            type="password"
+            id="login-password"
+            label="Password"
+            name="password"
+            value={apiStore.password}
+            onChange={this.onInputChange}/> 
+          <Button style="normal" type="submit">Log in</Button>
+          <div className={style.errors}>{apiStore.loginError}</div>
+        </form>
       </ModalBody>
     </Modal>
     );
@@ -47,11 +74,11 @@ export default class LoginModal extends React.Component<null, null> {
 
   async onSubmit(ev: React.FormEvent<HTMLFormElement>) {
     ev.preventDefault();
+    const {uiStore, apiStore} = this.props;
     const error = await apiStore.login();
+    console.log(error);
     if (!error) {
       uiStore.loginModalOpen = false;
-    } else {
-      console.error(error);
     }
   }
 }

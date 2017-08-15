@@ -1,53 +1,78 @@
 import * as React from 'react';
-import classnames from 'classnames';
+import * as ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import Spinner from '../../components/Spinner';
 const style = require('./LazyImage.pcss');
 
 interface LazyImageProps {
   source: string;
   placeholder: string;
-  aspectRatio: string; // should be defined so that the 
   method?: 'scroll' | 'immediate';
-  width?: number;
-  height?: number;
+  width?: number | string;
+  aspectRatio?: string | number; // should be defined to render correctly
+  alt?: string;
 }
 
 interface LazyImageState {
-  previewLoaded: boolean;
+  placeholderLoaded: boolean;
   sourceLoaded: boolean;
 }
-interface SpinnerProps {
-  visible: boolean;
-}
-const Spinner = (props: SpinnerProps) => (
-  <div className={classnames(style.spinner, props.visible && style.spinnerVisible)}
-      style={{backgroundImage: require('../../../public/spinner.svg')}}/>);
 
 export default class LazyImage extends React.Component<LazyImageProps, LazyImageState> {
   static defaultProps: LazyImageProps = {
-    aspectRatio: '1:1',
+    aspectRatio: 1,
     source: '',
     placeholder: '',
     method: 'scroll',
   };
-  private containerElement: HTMLElement;
 
   constructor(props: LazyImageProps) {
     super(props);
+    this.state = {
+      placeholderLoaded: false,
+      sourceLoaded: false,
+    };
   }
 
   componentDidMount() {
     // TODO: source loading logic here
-    console.log(this.containerElement);
+    this.loadImages();
+  }
+
+  async loadImages() {
+    try {
+      await fetch(this.props.placeholder);
+      this.setState({placeholderLoaded: true});
+      await fetch(this.props.source);
+      this.setState({sourceLoaded: true})
+    } catch(e) {
+      console.error(e);
+    }
   }
 
   render() {
-    const {placeholder, source} = this.props;
-    const {previewLoaded, sourceLoaded} = this.state;
+    let aspectRatio = this.props.aspectRatio;
+    if (typeof aspectRatio === 'string') {
+      const [num, denom] = aspectRatio.split(':').map((n) => parseFloat(n));
+      aspectRatio = num / denom;
+    }
+    const {placeholder, source, alt, width} = this.props;
+    const {placeholderLoaded, sourceLoaded} = this.state;
     return (
-      <div className={style.lazyImageContainer} ref={(d) => this.containerElement = d}>
-        <Spinner visible={!this.state.sourceLoaded}/> 
-        <img src={placeholder} className={classnames(style.placeholder, previewLoaded && style.placeholderVisible)}/>
-        <img src={sourceLoaded ? source : undefined}/>
+      <div className={style.container} style={{width}}>
+        <div className={style.spacer} style={{paddingBottom: `${1 / aspectRatio * 100}%`}}/>
+        <ReactCSSTransitionGroup
+        transitionName={style}
+        transitionEnter={true}
+        transitionLeave={true}
+        transitionEnterTimeout={300}
+        transitionLeaveTimeout={300}
+        >
+        {placeholderLoaded && !sourceLoaded ? 
+          <img key="placeholder" alt={alt} src={placeholder} className={style.placeholder}/> : null}
+        {sourceLoaded ? 
+          <img alt={alt} className={style.original} src={source}/> : null}
+        <Spinner key="spinner"/> 
+        </ReactCSSTransitionGroup>
       </div>
     );
   }

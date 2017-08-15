@@ -1,44 +1,70 @@
 @import '../../variables.pcss';
 
 :root {
-  --buttonColor: var(--colorSecondary);
   --textColor: white;
 }
 
-
-[type="submit"], [type="button"], [type="reset"] {
-  outline: none;
+button {
+  font-family: 'Source Sans Pro', system-ui;
 }
 
 .base {
+  text-decoration: none;
   -webkit-appearance: none;
   display: inline-block;
   border: none;
+  border-radius: 8px;
   padding: 0.5rem 1rem;
   line-height: 1.5rem;
   cursor: pointer;
+  margin-bottom: 1rem;
 }
 
 .normal {
+  composes: base;
   color: var(--textColor);
-  background-color: var(--buttonColor);
+  background-color: var(--colorPrimary);
   box-shadow: 0 1px 7px 0 rgba(0,0,0, 0.1);
   text-align: center;
   // font-size: 1.33rem;
+
   &:hover {
-    background-color: color(var(--buttonColor) shade(5%));
+    background-color: color(var(--colorPrimary) tint(5%));
+  }
+
+  &:active {
+    background-color: color(var(--colorPrimary) shade(5%));
+  }
+  &.secondary {
+    background-color: var(--colorSecondary);
+    &:hover {
+      background-color: color(var(--colorSecondary) shade(5%));
+    }
+    &:active {
+      background-color: color(var(--colorSecondary) shade(5%));
+    }
   }
 }
 
+
 .transparent {
-  color: var(--buttonColor);
+  composes: base;
+  color: var(--colorPrimary);
   background: none;
+  padding: 0.5rem;
+  &.secondary {
+    color: var(--colorSecondary);
+  }
 }
 
 .hollow {
   background: none;
-  color: var(--buttonColor);
-  border: 2px solid var(--buttonColor);
+  color: var(--colorPrimary);
+  border: 2px solid var(--colorPrimary);
+  &.secondary {
+    color: var(--colorSecondary);
+    border-color: var(--colorSecondary);
+  }
 }
 
 

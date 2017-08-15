@@ -1,13 +1,49 @@
+@import '../../variables.pcss';
 .sidebar {
-  flex: none;
+  /* layout */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  flex: 0 1 auto;
+  flex-direction: column;
+  z-index: 1;
+
+  /* decorations */
   background: white;
-  box-shadow: 0 0 3px 0 rgba(0, 0, 0, 0.08);
+  box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid var(--borderGray);
+  @media (min-width: 640px) {
+    z-index: 4;
+    display: flex;
+    position: relative;
+    flex: 0 0 var(--sidebarWidth);
+    border-bottom: 0;
+    border-right: 1px solid var(--borderGray);
+  }
 }
 
-@media (min-width: 640px) {
-  .sidebar {
-    border-right: 1px solid #ddd;
-    min-width: 300px;
+.content {
+  flex: 1 0 auto;
+  overflow: scroll;
+}
+.footer, .header {
+  @media (min-width: 640px) {
+    flex: 0 1 auto;
+  }
+}
 
+.header {
+  background: white;
+  height: 4rem;
+  @media (min-width: 640px) {
+    border-bottom: none;
+  }
+}
+
+.footer {
+  display: none;
+  @media (min-width: 640px) {
+    display: block;
   }
 }

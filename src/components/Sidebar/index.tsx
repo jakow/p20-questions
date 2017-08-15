@@ -5,15 +5,16 @@ import uiStore from '../../models/UiStore';
 const style = require('./Sidebar.pcss');
 
 const Sidebar = (props: React.Props<{}>) => (
-  <div className={style.sidebar}>
-    <header className={style.sidebarHeader}>
+  <aside className={style.sidebar}>
+    <header className={style.header}>
     <Logo/>
+    {/* <MenuButton onClick={}/> */}
     </header>
-    <div className={style.sidebarMain}/>
-    <footer className={style.sidebarFooter}>
-      <Button onClick={() => uiStore.loginModalOpen = true}>Log in</Button>
+    <div className={style.content}/>
+    <footer className={style.footer}>
+      <Button style="transparent" onClick={() => uiStore.loginModalOpen = true}>Log in</Button>
     </footer>
-  </div>
+  </aside>
   );
 
 export default Sidebar;

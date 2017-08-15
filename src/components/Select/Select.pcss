@@ -1,0 +1,114 @@
+@import '../../variables.pcss';
+:root {
+  --selectPadding: 0.75rem;
+  --selectMarginTop: 1rem;
+  --selectMarginSides: 0.5rem;
+}
+
+
+.container {
+  position: relative;
+  display: flex;
+  & label {
+    line-height: 1.5rem;
+  }
+}
+
+.inlineContainer {
+  composes: container;
+  flex-direction: row;
+  align-items: center;
+  & label {
+    margin: 0.75rem 0.75rem 0.75rem 0rem;
+    flex: 0 1 auto;
+  }
+
+  & .selectContainer {
+    flex: 1 0 auto;
+  }
+}
+
+.topContainer {
+  composes: container;
+  flex-direction: column;
+  & label {
+    margin-bottom: 0.5rem;
+  }
+}
+
+.responsiveContainer {
+  composes: container;
+  flex-direction: column;
+  & label {
+    margin-bottom: 0.5rem;
+  }
+  & .selectContainer {
+    flex: 1 0 auto;
+  }
+  @media (min-width: 640px) {
+    align-items: center;
+    flex-direction: row;
+    & label {
+      margin: 0.75rem 0.75rem 0.75rem 0rem;
+    }
+  }
+}
+
+.optionContainer {
+  composes: container;
+  & label {
+    height: 1px;
+    width: 1px;
+    position: absolute;
+    left: -99999999px
+  }
+}
+
+.selectContainer {
+  max-width: 100%;
+  position: relative;
+}
+
+select.select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  display: inline-block;
+  width: 100%;
+  position: relative;
+  right: 0;
+  padding: var(--selectPadding) 1.5rem var(--selectPadding) var(--selectPadding);
+  font-size: 1rem;
+  line-height: 1.5rem;
+  border: none;
+  background-color: var(--backgroundGray);
+  border: 1px solid var(--borderGray);
+  border-radius: 8px;
+  overflow: hidden;
+  color: var(--textGray);
+  cursor: pointer;
+  white-space: nowrap;
+  &:focus {
+    outline: none;
+    box-shadow: 0px 0px 0px 2px var(--outlineColor);
+  }
+}
+
+.icon {
+  position: absolute;
+  width: 10px;
+  height: 1.5rem;
+  top: var(--selectPadding);
+  right: calc(1px + var(--selectPadding));
+  background: var(--backgroundGray) url('../../../public/select-arrows.svg') center/10px 20px no-repeat;
+  &::before {
+    background: linear-gradient(90deg, rgba(240,240,240, 0), var(--backgroundGray));
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: -12px;
+    right: 0;
+    bottom: 0;
+    width: 12px;
+  }
+}

@@ -1,7 +1,40 @@
-.lazyImageContainer {
-
+.container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
 }
 
+.image {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.placeholder {
+  composes: image;
+  filter: blur(6px);
+}
+
+.enter {
+ opacity: 0.01;
+}
+
+.enter.enterActive {
+  opacity: 1;
+  transition: opacity 200ms ease-in;
+}
+
+.leave {
+  opacity: 1;
+}
+
+.leave.leaveActive {
+  opacity: 0.01;
+  transition: opacity 100ms linear 200ms;
+}
+/*
 .spinner {
   width: 32px;
   height: 32px;
@@ -22,3 +55,4 @@
     transform: rotate(360deg);
   }
 }
+*/

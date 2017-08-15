@@ -1,0 +1,63 @@
+@import '../../variables.pcss';
+
+.field {
+  border-bottom: 1px solid var(--borderGray);
+  background-color: white;
+  & label {
+    color: var(--textGray);
+  }
+}
+
+.button {
+  composes: normal from '../../components/Button/Button.pcss';
+  @media (min-width: 640px) {
+    width: 120px;
+  }
+}
+
+.input {
+  composes: input from '../../components/Input/Input.pcss';
+  position: relative;
+  padding: 0;
+  margin: 0;
+  & input, & textarea {
+    &:focus {
+      outline: none;
+    }
+    border-radius: 0;
+    padding: 1rem;
+    line-height: 1.5rem;
+    margin: 0;
+    background: transparent;
+    border: none;
+    z-index: 1;
+  }
+}
+
+.label {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 0;
+  line-height: 1.5rem;
+  font-size: 1rem;
+  color: var(--textGray);
+}
+
+.select {
+  margin: 0.5rem 1rem;
+}
+
+.selectContainer {
+  margin: 0.5rem 1rem;
+  composes: inlineContainer from '../../components/Select/Select.pcss';
+  & label {
+    flex-basis: 48px;
+  }
+}
+
+.buttonContainer {
+  display: block;
+  text-align: center;
+  margin: 1rem 1rem 0;
+}

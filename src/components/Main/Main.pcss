@@ -1,16 +1,17 @@
 .main {
-  flex: 1 0 auto;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-
-}
-
-.mainTop {
-  overflow-y: scroll;
   flex: 1;
+  position: relative;
+  overflow: auto;
+  margin-top: 4rem;
+  @media (min-width: 640px) {
+    margin-top: 0;
+  }
 }
 
-.mainBottom {
+.header {
   flex: 0;
+}
+
+.footer {
+  z-index: 1;
 }

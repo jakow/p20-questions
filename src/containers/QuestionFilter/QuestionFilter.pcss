@@ -1,0 +1,27 @@
+@import '../../variables.pcss';
+.container {
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  background-color: white;
+  border-bottom: 1px solid var(--borderGray);
+  box-shadow: 0 0 3px 0 rgba(0, 0, 0, 0.08);
+}
+
+.selectContainer {
+  inherits: responsiveContainer from '../../Select/Select';
+  max-width: 500px;
+}
+
+.caption {
+  margin-right: 12px;
+}
+
+.select {
+  margin-bottom: 0;
+}
+
+.label {
+  display: inline-block;
+  margin: 1rem 0;
+}

@@ -1,0 +1,17 @@
+:root {
+  --spinnerSize: 48px;
+}
+.spinner {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--spinnerSize);
+  height: var(--spinnerSize);
+  margin-top: calc(var(--spinnerSize) / -2);
+  margin-left: calc(var(--spinnerSize) / -2);
+  background-image: url('../../../public/spinner.svg');
+  background-repeat: no-repeat;
+  background-position: center center;  
+  background-size: var(--spinnerSize) var(--spinnerSize);
+}

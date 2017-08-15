@@ -1,0 +1,41 @@
+:root {
+  --transitionTime: 400ms;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.75);
+  opacity: 1;
+}
+
+
+.enter {
+  transition: opacity var(--transitionTime) cubic-bezier(0.77, 0, 0.175, 1);
+  opacity: 0.001;
+  transition-delay: 0ms, 0ms;
+  &.enterActive {
+    opacity: 1;
+  }
+}
+
+.appear {
+  transition: opacity var(--transitionTime) cubic-bezier(0.77, 0, 0.175, 1);
+  opacity: 0.001;
+  transition-delay: 0ms, 0ms;
+  &.appearActive {
+    opacity: 1;
+  }
+}
+
+.leave {
+  transition: opacity var(--transitionTime) cubic-bezier(0.77, 0, 0.175, 1);
+  opacity: 1;
+  &.leaveActive {
+    opacity: 0.001;
+  }
+}

@@ -1,42 +1,73 @@
 type HasId = {_id: string};
 export type Document<T> = T & HasId;
 
-interface Person {
+export interface ImageObject {
+  url: string;
+  secure_url: string;
+}
+
+interface SpeakerData {
   name: string;
   position: string;
   company: string;
-  photo: string;
+  photo: ImageObject;
   description: string;
 }
 
-export type PersonDocument = Document<Person>;
+export type SpeakerDocument = Document<SpeakerData>;
 
 type Id = string;
 
-interface Event {
+interface VenueData {
   name: string;
+  location: {
+    geo: number[];
+    number: string;
+    name: string;
+    street1: string;
+    street2: string;
+    suburb: string;
+    
+    country: string;
+
+  };
+}
+
+export type VenueDocument = Document<VenueData>;
+
+interface EventData {
+  name: string;
+  type: string;
   description: string;
-  image: string;
+  image: ImageObject;
   time: {
     start: string;
     end: string;
   };
-  speakers: PersonDocument[];
-  date: Date;
-  venue: string;
+  speakers: string[];
+  agendaDay: string;
+  venue: VenueDocument;
 }
 
-export type EventDocument = Document<Event>;
+export type EventDocument = Document<EventData>;
 
-export interface Question {
+export interface QuestionData {
   text: string;
-  dateAdded: Date | string;
+  dateCreated: Date | string;
   accepted: boolean;
   archived: boolean;
   askedBy?: string;
-  toPerson?: PersonDocument | Id;
+  toPerson?: SpeakerDocument | Id;
   forEvent?: EventDocument | Id;
   dateAccepted?: Date | string;
 }
 
-export type QuestionDocument = Document<Question>;
+export type QuestionDocument = Document<QuestionData>;
+
+interface User {
+  email: string;
+  name: string;
+  imgUrl: string;
+}
+
+export type UserDocument = Document<User>;

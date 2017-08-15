@@ -1,31 +1,53 @@
 .logoContainer {
+  display: inline-block;
   padding: 1rem;
   margin: 0 auto;
-  display: flex;
   justify-content: flex-start;
   font-weight: 300;
-  font-size: 1.333rem;
-  line-height: 1.667rem;
-  align-items: center;
+  font-size: 1rem;
+  @media (min-width: 640px) {
+    font-size: 1.25rem;
+  }
+  line-height: 1.5rem;
 }
 
 .logo {
-  width: 3rem;
+  height: 2rem;
+  @media (min-width: 640px) {
+    height: 3rem;
+  }
   display: inline-block;
   flex: 0 1 auto;
+}
+
+.link {
+  align-items: center;
+  display: flex;
+  text-decoration: none;
+  color: inherit;
 }
 
 .logoCaption {
   flex: 0 1 auto;
   display: inline-block;
-  margin-left: 20px;
+  margin-left: 0.5rem;
+  @media (min-width: 640px) {
+    margin-left: 1rem
+  }
 }
 
-.appName {
+.caption {
   font-weight: 600;
 }
 
-@media (min-width: 640px), (max-width: 400px) {
+.subcaption {
+  display: none;
+  @media (min-width: 640px) {
+    display: inline;
+  }
+}
+
+@media (min-width: 640px) {
   .logoContainer {
     justify-content: center;
   }

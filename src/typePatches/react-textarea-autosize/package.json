@@ -1,0 +1,28 @@
+{
+    "name": "@types/react-textarea-autosize",
+    "version": "4.3.1",
+    "description": "TypeScript definitions for react-textarea-autosize",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Alexey Svetliakov",
+            "url": "https://github.com/asvetliakov"
+        },
+        {
+            "name": "Jerry Zou",
+            "url": "https://github.com/zry656565"
+        }
+    ],
+    "main": "",
+    "repository": {
+        "type": "git",
+        "url": "https://www.github.com/DefinitelyTyped/DefinitelyTyped.git"
+    },
+    "scripts": {},
+    "dependencies": {
+        "@types/react": "*"
+    },
+    "peerDependencies": {},
+    "typesPublisherContentHash": "d1b15d97b9c042d2494dcc825d14e3cd4552a685a0a5ba2c70c584e48f000e98",
+    "typeScriptVersion": "2.3"
+}

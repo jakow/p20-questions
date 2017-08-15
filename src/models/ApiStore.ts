@@ -1,92 +1,191 @@
 import * as SocketIO from 'socket.io-client';
 import {observable, action, computed} from 'mobx';
-import {merge} from 'lodash';
+import {UserDocument} from '../models/Document';
 import hasLocalStorage from '../helpers/hasLocalStorage';
-
-interface User {
-  email: string;
-  name: string;
-  imgUrl: string;
-}
-const UNKNOWN_ERROR = 'Something went wrong.';
+import Deferred from '../helpers/deferred';
 
 const TOKEN = 'P20_QAPI_TOKEN';
 const TOKEN_EXPIRATION = 'P20_QAPI_TOKEN_EXPIRATION';
-export const SERVER_URI = process.env.NODE_ENV === 'production' ? 'https://poland20.com' : 'http://localhost:4000';
+export const SERVER_URI = process.env.NODE_ENV === 'production' ? 'https://poland20.com' : 
+  `http://${window.location.hostname}:4000`;
 
 export const httpApiRoute = (route: string) => `${SERVER_URI}/api/${route}`;
 
+interface SocketConnectionCallback {
+  (s: SocketIOClient.Socket): void;
+}
 
-class ApiStore {
-  readonly socketIo: SocketIOClient.Socket;
-  @observable token: string = '';
-  @observable tokenExpiration: Date = null;
-  @observable user: User = null;
+interface LoginCallback {
+  (user: UserDocument): void;
+}
+
+export class ApiStore {
+  socketIo: SocketIOClient.Socket;
+  token: string = '';
+  tokenExpiration: Date = null;
+  @observable user: UserDocument = null;
   @observable loginError: string = null;
   
   // login data
-  username: string = '';
-  password: string = '';
+  @observable username: string = '';
+  @observable password: string = '';
 
   private tokenTimeout: number;
+  private socketConnectionCallbacks: SocketConnectionCallback[] = [];
+  private loginCallbacks: LoginCallback[] = [];
 
   constructor() {
     if (hasLocalStorage()) {
       this.token = localStorage.getItem(TOKEN) || '';
       this.tokenExpiration = new Date(localStorage.getItem(TOKEN_EXPIRATION));
     }
-    this.socketIo = SocketIO(SERVER_URI);
+    this.connectSocketIo(this.isLoggedIn ? '/admin' : '/client');
   }
 
-  @action async login() {
+  @action
+  async login() {
     try {
-      const response =  await this.httpApi('login', {
-        method: 'post',
+      const result =  await this.post('login', {
         body: {email: this.username, password: this.password},
       });
-      const result = await response.json();
-      if (response.ok) {
-        this.setToken(result);
-        this.loginError = null;
-        // do not persist credentials
-        this.username = '';
-        this.password = '';
-        return null;
-      } else {
-        this.loginError = result.message;
-        return this.loginError;
-      }
+      this.user = result.user;
+      this.setToken(result);
+
+      this.connectSocketIo('/admin');
+      this.loginCallbacks.forEach((cb) => cb(this.user));
+      this.username = '';
+      this.password = '';
+      return this.loginError = null;
     } catch (e) {
-      this.loginError = UNKNOWN_ERROR;
-      return (e.message);
+      return this.loginError = e.message;
+    } finally {
+      // do not persist credentials
     }
   }
 
-  @action logout() {
+  @action 
+  logout = () => {
     this.token = '';
     this.tokenExpiration = null;
     clearTimeout(this.tokenTimeout);
   }
+
+
   /**
-   * We cannot know whether the user is logged in until we hit the server
-   * with a request and see whether it accepts
+   * We cannot _truly_ know whether the user is logged in until we hit the server
+   * with a request and see whether it accepts. However, the expiration of the token
+   * is a good indication that the user is actually logged in
    */
   @computed get isLoggedIn() {
-    return this.token.length !== 0 && this.tokenExpiration !== null && +this.tokenExpiration -  Date.now() > 0;
+    return this.token.length !== 0 && this.tokenExpiration !== null && +this.tokenExpiration - Date.now() > 0;
   }
+
+  /**
+   * Add a task to be done when the user logs in
+   * @param cb the 
+   */
+  addLoginCallback(cb: LoginCallback) {
+    this.loginCallbacks.push(cb);
+    if (this.isLoggedIn) {
+      cb(this.user);
+    }
+  }
+
+  connectSocketIo(namespace: string) {
+    const socketUri = SERVER_URI + namespace;
+    // close previous socket
+    if (this.socketIo) {
+      this.socketIo.close();
+    }
+    this.socketIo = SocketIO(socketUri);
+    const io = this.socketIo;
+    io.on('connect', this.onSocketConnected);
+    // io.on('disconnect', this.onSocketDisconnected);
+  }
+
+  onSocketConnected = () => {
+    const io = this.socketIo;
+    if (io.nsp === '/admin' && this.isLoggedIn) {
+      io.emit('authenticate', {token: this.token});
+      // normally the token is valid so 'not authenticated' should not fire
+    }
+    this.socketConnectionCallbacks.forEach((callback) => callback(io));
+  }
+
+  // onSocketDisconnected = (reason: string) => {
+  //   console.info('Socket disconnected. Reason: ' + reason);
+  // }
+
+  /**
+   * Allow other modules to register a callback to be executed when
+   * 
+   * @param handler The function to be called when Socket.IO connects
+   */
+  addSocketConnectionCallback(handler: SocketConnectionCallback) {
+    this.socketConnectionCallbacks.push(handler);
+    if (this.socketIo.connected) {
+      handler(this.socketIo);
+    }
+  }
+
+  /**
+   * Create an iterator over event stream for an event of given name
+   * WARNING: Should only be used with for-async-of, where
+   * next() is called immediately after the data is consumed.
+   * Otherwise a promise may be resolved twice, resulting in an error
+   * @param eventName 
+   */
+  socketEventStream<T>(eventName: string): AsyncIterableIterator<T> {
+    const io = this.socketIo;
+    let deferred: Deferred<IteratorResult<T>>;
+    const handler = (value: T) => {
+      if (deferred && !deferred.resolved) {
+        deferred.resolve({ value, done: false });
+      } else if (deferred.resolved) {
+        throw new Error('[socket event stream] Socket event stream deferred resolved twice');
+      } else {
+        console.warn('[socket event stream] Event stream has registered an event but there was no listener');
+      }
+    };
+    // attach the handler that will resolve the iterator promises
+    io.on(eventName, handler);
+
+    io.once('disconnect', () => {
+      io.off(eventName, handler);
+      if (!deferred.resolved) {
+        deferred.reject(new Error('Socket event stream broken: Socket disconnected'));
+      }
+    });
+
+    return {
+      next() {
+        deferred = new Deferred<IteratorResult<T>>();
+        return deferred;
+      },
+      [Symbol.asyncIterator]() {
+        return this;
+      },
+      return() {
+        // close the socket stream
+        io.off(eventName, handler);
+        return null;
+      }
+    };
+  }
+
   /**
    * Wrapper around fetch which appends token to the request if the token is valid and
    * knows the route to the server. Requests are assumed to have a JSON body by default.
    * @param route 
    * @param options 
    */
-  async httpApi(route: string, options?: RequestInit) {
+  async fetch(route: string, options?: RequestInit) {
 
     const defaults: RequestInit = {
       headers: this.isLoggedIn ? {'Authorization': `JWT ${this.token}`} : {}, 
       mode: 'cors',
     };
-    const opt = merge(defaults, options);
+    const opt = {...defaults, ...options};
     // auto stringify JSON body
     if (typeof opt.body === 'object') {
       opt.headers['Content-Type'] = 'application/json';
@@ -95,40 +194,48 @@ class ApiStore {
 
     const response = await fetch(httpApiRoute(route), opt);
     if (!response.ok) {
-      let message = '';
-      if (response.headers['Content-Type'] === 'application/json') {
-        message = await response.json();
+      let message = response.statusText || response.status.toString();
+      if (response.headers.get('Content-Type').startsWith('application/json')) {
+        const body = await response.json();
+        // different api routes tend to have a different status messages
+        // arguably, this should be made consistent on server side.
+        message = body.message || body.status || body.error || message;
       } 
-      throw new ApiError(message || response.statusText);
+      throw new Error(message);
     }
-    return response;
+    return await response.json();
+  }
+
+  /* HTTP API convenience methods */
+
+  post(resource: string, options?: RequestInit) {
+    return this.fetch(resource, {method: 'POST', ...options});
   }
 
   create(resource: string, options?: RequestInit) {
-    return this.httpApi(resource, merge({method: 'post'}, options));
+    return this.post(resource, options);
   }
 
   read(resource: string, options?: RequestInit) {
-    return this.httpApi(resource, merge({method: 'get'}, options));
+    return this.fetch(resource, {method: 'GET', ...options});
   }
   
   update(resource: string, options?: RequestInit) {
     // make an 'intelligent' guess as to which update (PATCH/PUT) is used
     let body = options.body;
-    let method = 'put';
-    // try to find that the json is an array without parsing it (becaue expensive!)
-    if (typeof body === 'string' && body[0] === '[') {
-      method = 'patch';
-    } else if (Array.isArray(body)) {
-      method = 'patch';
+    let method = 'PUT';
+    // try to find that the json is an array without parsing it (because that is expensive!)
+    if (Array.isArray(body) || (typeof body === 'string' && body[0] === '[')) {
+      method = 'PATCH';
     }
-    return this.httpApi(resource, merge({method}, options));
+    return this.fetch(resource, {method, ...options});
   }
 
   delete(resource: string, options?: RequestInit) {
-    return this.httpApi(resource, merge({method: 'delete'}, options));
+    return this.fetch(resource, {method: 'delete', ...options});
   }
 
+  /*** PRIVATE METHODS ***/
   private setToken(response: {token: string, expires: string}) {
     this.token = response.token;
     this.tokenExpiration = new Date(response.expires);
@@ -147,8 +254,8 @@ class ApiStore {
   }
 }
 
-
-export class ApiError extends Error {}
-
 const store = new ApiStore();
+
+(global as any).apiStore = store; // tslint:disable-line
+
 export default store;

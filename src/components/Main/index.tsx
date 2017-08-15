@@ -1,16 +1,18 @@
 import * as React from 'react';
 import CurrentQuestionList from '../../containers/CurrentQuestionList';
+import QuestionFilter from '../../containers/QuestionFilter';
 const style = require('./Main.pcss');
-import QuestionInputPanel from '../../containers/QuestionInputPanel';
 
-const Main = () => (
+export default function Main() {
+  return (
   <main className={style.main}>
-    <div className={style.mainTop}>
-      <CurrentQuestionList/>
+    <div className={style.header}>
+      <QuestionFilter/>
     </div>
-    <div className={style.mainBottom}>
-      <QuestionInputPanel show={true}/>
+    <div className={style.content}>
+      <CurrentQuestionList/>  
     </div>
-  </main>);
-
-export default Main;
+    
+  </main>
+  );
+}
