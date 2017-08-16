@@ -1,10 +1,7 @@
 import {observable} from 'mobx';
+import {UiService} from './UiService';
 
-export class UiStore {
+export default class UiStore implements UiService {
   @observable loginModalOpen =  false;
   @observable questionInputOpen = false;
 }
-
-const store = new UiStore();
-
-export default store;

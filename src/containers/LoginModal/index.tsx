@@ -2,8 +2,8 @@ import * as React from 'react';
 import Modal from 'react-modal';
 import * as classnames from 'classnames';
 import {observer, inject} from 'mobx-react';
-import {UiStore} from '../../models/UiStore';
-import {ApiStore} from '../../models/ApiStore';
+import {UiService} from '../../services/UiService';
+import {ApiService} from '../../services/ApiService';
 import {ModalHeader, ModalBody} from '../../components/Modal';
 const coreStyle = require('../../components/Modal/Modal.pcss');
 const style = require('./LoginModal.pcss');
@@ -13,8 +13,8 @@ import Button from '../../components/Button';
 Modal.setAppElement(document.getElementById('app') as HTMLElement);
 
 interface LoginModalProps {
-  uiStore?: UiStore;
-  apiStore?: ApiStore;
+  uiStore?: UiService;
+  apiStore?: ApiService;
 }
 
 @inject('uiStore', 'apiStore')
@@ -75,8 +75,7 @@ export default class LoginModal extends React.Component<LoginModalProps, null> {
   async onSubmit(ev: React.FormEvent<HTMLFormElement>) {
     ev.preventDefault();
     const {uiStore, apiStore} = this.props;
-    const error = await apiStore.login();
-    console.log(error);
+    const error = await apiStore.login(apiStore.username, apiStore.password);
     if (!error) {
       uiStore.loginModalOpen = false;
     }

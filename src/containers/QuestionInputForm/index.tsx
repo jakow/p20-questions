@@ -3,15 +3,17 @@ import {observer, inject} from 'mobx-react';
 import Select, {Option} from '../../components/Select';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
-import {QuestionStore} from '../../models/QuestionStore';
-import {UiStore} from '../../models/UiStore';
+import {QuestionService} from '../../services/QuestionService';
+import {UiService} from '../../services/UiService';
+import {EventService} from '../../services/EventService';
 const style = require('./QuestionInputForm.pcss');
 interface QuestionInputFormProps {
-  questionStore?: QuestionStore;
-  uiStore?: UiStore;
+  questionStore?: QuestionService;
+  uiStore?: UiService;
+  eventStore?: EventService;
 }
 
-@inject('questionStore', 'uiStore')
+@inject('questionStore', 'uiStore', 'eventStore')
 @observer
 export default class QuestionInputForm extends React.Component<QuestionInputFormProps, {}> {
 
@@ -29,19 +31,17 @@ export default class QuestionInputForm extends React.Component<QuestionInputForm
     this.props.questionStore.newQuestion[field] = value;
   }
   onEventSelect = (opt: Option) => {
-    const event = this.props.questionStore.selectEvent(opt.value);
-    const speaker = this.props.questionStore.selectedSpeaker;
-    if (event && event.speakers.indexOf(speaker) < 0) {
-      this.props.questionStore.selectedSpeaker = null;
-    }
+    const store = this.props.eventStore;
+    store.selectEvent(opt.value);
   }
 
   onSpeakerSelect = (opt: Option) => {
-    this.props.questionStore.selectSpeaker(opt.value);
+    this.props.eventStore.selectSpeaker(opt.value);
   }
 
   render() {
-    const {newQuestion, eventOptions, speakerOptions} = this.props.questionStore;
+    const {newQuestion} = this.props.questionStore;
+    const { eventOptions, speakerOptions} = this.props.eventStore;
     return (
     <form tabIndex={-1} className={style.questionForm} onSubmit={this.onSubmit}>
       <Field>

@@ -1,17 +1,17 @@
 import * as React from 'react';
 import * as classnames from 'classnames';
 import QuestionControls from '../QuestionControls';
-import {QuestionDocument} from '../../models/Document';
+import {Question} from '../../models/Question';
 const style = require('./Question.pcss');
 
 interface QuestionProps extends React.Props<QuestionProps> {
-  question: QuestionDocument;
+  question: Question;
   showControls?: boolean;
   onChangeAcceptedState?: (accepted: boolean) => void;
   onChangeArchivedState?: (archived: boolean) => void;
 }
 
-const Question = ({question, showControls, onChangeAcceptedState, onChangeArchivedState}: QuestionProps) => {
+const QuestionComponent = ({question, showControls, onChangeAcceptedState, onChangeArchivedState}: QuestionProps) => {
   return (
     <div className={classnames(style.question, question.accepted ? style.accepted : null)}>
       <p>{question.text}</p>
@@ -29,4 +29,4 @@ const Question = ({question, showControls, onChangeAcceptedState, onChangeArchiv
   );
 };
 
-export default Question;
+export default QuestionComponent;

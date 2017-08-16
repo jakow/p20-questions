@@ -1,6 +1,7 @@
 import * as SocketIO from 'socket.io-client';
 import {observable, action, computed} from 'mobx';
-import {UserDocument} from '../models/Document';
+import {User} from '../models/User';
+import {ApiService} from './ApiService';
 import hasLocalStorage from '../helpers/hasLocalStorage';
 import Deferred from '../helpers/deferred';
 
@@ -16,14 +17,14 @@ interface SocketConnectionCallback {
 }
 
 interface LoginCallback {
-  (user: UserDocument): void;
+  (user: User): void;
 }
 
-export class ApiStore {
+export default class ApiStore implements ApiService {
   socketIo: SocketIOClient.Socket;
   token: string = '';
   tokenExpiration: Date = null;
-  @observable user: UserDocument = null;
+  @observable user: User = null;
   @observable loginError: string = null;
   
   // login data
@@ -43,10 +44,10 @@ export class ApiStore {
   }
 
   @action
-  async login() {
+  async login(username: string, password: string) {
     try {
       const result =  await this.post('login', {
-        body: {email: this.username, password: this.password},
+        body: {email: username, password: password},
       });
       this.user = result.user;
       this.setToken(result);
@@ -70,7 +71,6 @@ export class ApiStore {
     clearTimeout(this.tokenTimeout);
   }
 
-
   /**
    * We cannot _truly_ know whether the user is logged in until we hit the server
    * with a request and see whether it accepts. However, the expiration of the token
@@ -84,7 +84,7 @@ export class ApiStore {
    * Add a task to be done when the user logs in
    * @param cb the 
    */
-  addLoginCallback(cb: LoginCallback) {
+  onLogin(cb: LoginCallback) {
     this.loginCallbacks.push(cb);
     if (this.isLoggedIn) {
       cb(this.user);
@@ -103,15 +103,6 @@ export class ApiStore {
     // io.on('disconnect', this.onSocketDisconnected);
   }
 
-  onSocketConnected = () => {
-    const io = this.socketIo;
-    if (io.nsp === '/admin' && this.isLoggedIn) {
-      io.emit('authenticate', {token: this.token});
-      // normally the token is valid so 'not authenticated' should not fire
-    }
-    this.socketConnectionCallbacks.forEach((callback) => callback(io));
-  }
-
   // onSocketDisconnected = (reason: string) => {
   //   console.info('Socket disconnected. Reason: ' + reason);
   // }
@@ -121,7 +112,7 @@ export class ApiStore {
    * 
    * @param handler The function to be called when Socket.IO connects
    */
-  addSocketConnectionCallback(handler: SocketConnectionCallback) {
+  onSocketConnection(handler: SocketConnectionCallback) {
     this.socketConnectionCallbacks.push(handler);
     if (this.socketIo.connected) {
       handler(this.socketIo);
@@ -252,10 +243,13 @@ export class ApiStore {
       localStorage.setItem(TOKEN_EXPIRATION, this.tokenExpiration.toUTCString());
     }
   }
+
+  private onSocketConnected = () => {
+    const io = this.socketIo;
+    if (io.nsp === '/admin' && this.isLoggedIn) {
+      io.emit('authenticate', { token: this.token });
+      // normally the token is valid so 'not authenticated' should not fire
+    }
+    this.socketConnectionCallbacks.forEach((callback) => callback(io));
+  }
 }
-
-const store = new ApiStore();
-
-(global as any).apiStore = store; // tslint:disable-line
-
-export default store;

@@ -1,12 +1,12 @@
 import * as React from 'react';
 import {inject, observer} from 'mobx-react';
-import {EventStore} from '../../models/EventStore';
-import {QuestionStore} from '../../models/QuestionStore';
+import {EventService} from '../../services/EventService';
+import {QuestionService} from '../../services/QuestionService';
 import Select, {Option} from '../../components/Select';
 const style = require('./QuestionFilter.pcss');
 interface QuestionFilterProps {
-  eventStore?: EventStore;
-  questionStore?: QuestionStore;
+  eventStore?: EventService;
+  questionStore?: QuestionService;
 }
 
 interface QuestionFilterState {
@@ -18,10 +18,11 @@ interface QuestionFilterState {
 export default class QuestionFilter extends React.Component<QuestionFilterProps, QuestionFilterState> {
   
   render() {
-    const options = this.props.questionStore.eventOptions;
+    const evStore = this.props.eventStore;
+    const options = evStore.eventOptions;
     let value = '';
-    if (this.props.questionStore.selectedEvent != null) {
-      value = this.props.questionStore.selectedEvent._id;
+    if (this.props.eventStore.selectedEvent != null) {
+      value = evStore.selectedEvent._id;
     }
     return (
       <div className={style.container}>
@@ -41,6 +42,6 @@ export default class QuestionFilter extends React.Component<QuestionFilterProps,
   }
 
   onSelect = (opt: Option) => {
-    this.props.questionStore.selectEvent(opt.value);
+    this.props.eventStore.selectEvent(opt.value);
   }
 }

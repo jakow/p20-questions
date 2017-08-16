@@ -1,6 +1,6 @@
 import * as React from 'react';
-import {QuestionDocument} from '../../models/Document';
 import Question from '../Question'; 
+import {Question as QuestionDocument} from '../../models/Question';
 
 const style = require('./QuestionList.pcss');
 

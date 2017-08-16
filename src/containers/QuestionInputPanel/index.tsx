@@ -3,15 +3,15 @@ import {observer, inject} from 'mobx-react';
 import QuestionInputForm from '..//QuestionInputForm';
 import MorphingCloseButton from '../../components/MorphingCloseButton';
 import Overlay from '../../components/Overlay';
-import {QuestionStore} from '../../models/QuestionStore';
-import {UiStore} from '../../models/UiStore';
-import {EventStore} from '../../models/EventStore';
+import {QuestionService} from '../../services/QuestionService';
+import {UiService} from '../../services/UiService';
+import {EventService} from '../../services/EventService';
 const style = require('./QuestionInputPanel.pcss');
 
 interface QuestionInputPanelProps {
-  questionStore?: QuestionStore;
-  uiStore?: UiStore;
-  eventStore?: EventStore;
+  questionStore?: QuestionService;
+  uiStore?: UiService;
+  eventStore?: EventService;
 }
 
 interface QuestionInputPanelState {

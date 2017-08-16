@@ -1,9 +1,8 @@
 import {observable, computed, action} from 'mobx';
-import {QuestionData, QuestionDocument} from './Document';
-import Question from './Question';
-import apiStore from './ApiStore';
-import eventStore, {Event, Speaker} from './EventStore';
-import {Option} from '../components/Select';
+import {ApiService} from './ApiService';
+import {question, Question} from '../models/Question';
+import {Speaker} from '../models/Speaker';
+import {Event} from '../models/Event';
 import * as validate from 'validate.js';
 type Id = string;
 type QuestionMap = Map<Id, Question>;
@@ -14,11 +13,11 @@ enum QuestionSort {
   UNSORTED
 }
 
-export class QuestionStore {
-  @observable pendingRequests = 0; // number of 'threads' that wait for resources, used for a global loader
+export default class QuestionStore {
+  @observable fetching = false; // are questions being fetched from server?
   @observable questions: QuestionMap = new Map();
 
-  @observable newQuestion: Partial<QuestionData> = {
+  @observable newQuestion: Partial<Question> = {
     text: '',
     askedBy: '',
     toPerson: '',
@@ -32,18 +31,18 @@ export class QuestionStore {
 
   @observable submittingQuestion: boolean = false;
 
-  constructor() {
+  constructor(private api: ApiService) {
     this.init();
   }
 
-  async init() {
-    await this.loadQuestions();
-    apiStore.addSocketConnectionCallback(this.initIO);
-    apiStore.addLoginCallback(() => this.loadQuestions());
+  init() {
+    this.loadQuestions();
+    this.api.onSocketConnection(this.initIO);
+    this.api.onLogin(() => this.loadQuestions());
   }
 
   initIO = async (io: SocketIOClient.Socket) => {
-    io.on('question', (q: QuestionDocument) => this.updateQuestions([q]));
+    io.on('question', (q: Question) => this.updateQuestions([q]));
     if (io.nsp === '/client') {
       io.on('remove question', (id: string) => this.removeQuestion(id));
     }
@@ -67,30 +66,26 @@ export class QuestionStore {
 
   @action 
   async loadQuestions() {
+    this.fetching = true;
     try {
-      this.pendingRequests++;
-      const questions = await apiStore.fetch('questions');
+      const questions = await this.api.fetch<any[]>('questions'); //tslint:disable-line
       this.updateQuestions(questions);
     } catch (e) {
       // TODO: handle fetch error
     } finally {
-      this.pendingRequests--;
+      this.fetching = false;
     }
   }
 
   @action 
-  updateQuestions(questions: QuestionDocument[]) {
+  updateQuestions(questions: Question[]) {
     for (const q of questions) {
-      if (this.questions.has(q._id)) {
-        this.questions.get(q._id).updateFromJSON(q);
-      } else {
-        this.questions.set(q._id, new Question(q));
-      }
+      this.questions.set(q._id, question(q));
     }
   }
 
   @action 
-  removeQuestion(question: QuestionDocument | Id) {
+  removeQuestion(question: Question | Id) {
     if (typeof question === 'string') {
       this.questions.delete(question);
     } else {
@@ -98,7 +93,7 @@ export class QuestionStore {
     }
   }
 
-  validateQuestion(q: Partial<QuestionData>) {
+  validateQuestion(q: Partial<Question>) {
     const constraints = {
       text: {
         presence: {message: '^A question is required'},
@@ -122,8 +117,8 @@ export class QuestionStore {
       return error;
     }
     try {
-      this.pendingRequests++;
-      await apiStore.create('questions', {
+      this.fetching = true;
+      await this.api.create('questions', {
         body: this.newQuestion,
       });
       this.resetQuestion();
@@ -132,7 +127,7 @@ export class QuestionStore {
     } catch (e) {
       return e.message;
     } finally {
-      this.pendingRequests--;
+      this.fetching = false;
     }
   }
 
@@ -141,48 +136,6 @@ export class QuestionStore {
     this.newQuestion.askedBy = '';
     this.newQuestion.forEvent = '';
     this.newQuestion.toPerson = '';
-  }
-
-  @computed get eventOptions() {
-    const options: Option[] = [{ name: 'Anything', value: '' }];
-    for (const e of eventStore.eventList) {
-      options.push({
-        name: e.name,
-        value: e._id,
-      });
-    }
-    return options;
-  }
-
-  @computed get speakerOptions() {
-    let speakers;
-    if (this.selectedEvent) {
-      speakers = eventStore.speakersForEvent(this.selectedEvent);
-    } else {
-      speakers = eventStore.speakerList;
-    }
-    const options: Option[] = [{ name: 'All speakers', value: '' }];
-    for (const s of speakers) {
-      options.push({ name: s.name, value: s._id });
-    }
-    return options;
-  }
-
-  @action selectEvent(event: string | Event | null) {
-    if (typeof event === 'string') {
-      this.selectedEvent = eventStore.events.get(event) || null;
-    } else {
-      this.selectedEvent = event;
-    }
-    return this.selectedEvent;
-  }
-
-  @action selectSpeaker(speaker: string | Speaker | null) {
-    if (typeof speaker === 'string') {
-      this.selectedSpeaker = eventStore.speakers.get(speaker) || null;
-    } else {
-      this.selectedSpeaker = speaker || null;
-    }
   }
 }
 
@@ -200,12 +153,3 @@ function byDateAccepted(q1: Question, q2: Question) {
 function byDateCreated(q1: Question, q2: Question) {
   return +q1.dateCreated - +q2.dateCreated;
 }
-
-/**
- * Experimental class to create a domain object for a question that keeps in sync
- * with the backend
- */
-
-const store = new QuestionStore();
-(global as any).questionStore = store; // tslint:disable-line
-export default store;

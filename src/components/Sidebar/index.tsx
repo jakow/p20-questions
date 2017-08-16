@@ -1,10 +1,14 @@
 import * as React from 'react';
+import {inject} from 'mobx-react';
+import {UiService} from '../../services/UiService';
 import Logo from '../Logo';
 import Button from '../Button';
-import uiStore from '../../models/UiStore';
 const style = require('./Sidebar.pcss');
 
-const Sidebar = (props: React.Props<{}>) => (
+interface SidebarProps extends React.Props<SidebarProps> {
+  uiStore?: UiService;
+}
+const Sidebar = inject('uiStore')(({uiStore}: SidebarProps) => (
   <aside className={style.sidebar}>
     <header className={style.header}>
     <Logo/>
@@ -15,6 +19,6 @@ const Sidebar = (props: React.Props<{}>) => (
       <Button style="transparent" onClick={() => uiStore.loginModalOpen = true}>Log in</Button>
     </footer>
   </aside>
-  );
+  ));
 
 export default Sidebar;
