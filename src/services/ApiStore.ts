@@ -1,16 +1,11 @@
-import * as SocketIO from 'socket.io-client';
+import {merge} from 'lodash';
 import {observable, action, computed} from 'mobx';
+import * as SocketIO from 'socket.io-client';
 import {User} from '../models/User';
-import {ApiService} from './ApiService';
+import ApiError, {ErrorCode} from './ApiError';
+
 import hasLocalStorage from '../helpers/hasLocalStorage';
-import Deferred from '../helpers/deferred';
-
-const TOKEN = 'P20_QAPI_TOKEN';
-const TOKEN_EXPIRATION = 'P20_QAPI_TOKEN_EXPIRATION';
-export const SERVER_URI = process.env.NODE_ENV === 'production' ? 'https://poland20.com' : 
-  `http://${window.location.hostname}:4000`;
-
-export const httpApiRoute = (route: string) => `${SERVER_URI}/api/${route}`;
+import {TOKEN, TOKEN_EXPIRATION, SERVER_URI} from '../constants';
 
 interface SocketConnectionCallback {
   (s: SocketIOClient.Socket): void;
@@ -20,10 +15,17 @@ interface LoginCallback {
   (user: User): void;
 }
 
-export default class ApiStore implements ApiService {
-  socketIo: SocketIOClient.Socket;
-  token: string = '';
-  tokenExpiration: Date = null;
+interface LoginResponse {
+  token: string;
+  expires: string;
+  user: User;
+}
+
+export const httpApiRoute = (route: string) => `${SERVER_URI}/api/${route}`;
+
+export default class ApiStore {
+
+  @observable tokenExpiration: Date = null;
   @observable user: User = null;
   @observable loginError: string = null;
   
@@ -31,58 +33,72 @@ export default class ApiStore implements ApiService {
   @observable username: string = '';
   @observable password: string = '';
 
-  private tokenTimeout: number;
+  private socketIo: SocketIOClient.Socket;
+  private token: string = '';
   private socketConnectionCallbacks: SocketConnectionCallback[] = [];
   private loginCallbacks: LoginCallback[] = [];
 
   constructor() {
     if (hasLocalStorage()) {
-      this.token = localStorage.getItem(TOKEN) || '';
+      this.token = localStorage.getItem(TOKEN);
       this.tokenExpiration = new Date(localStorage.getItem(TOKEN_EXPIRATION));
     }
     this.connectSocketIo(this.isLoggedIn ? '/admin' : '/client');
   }
 
+  /**
+   * Log in to questions API
+   * @param username 
+   * @param password 
+   */
   @action
   async login(username: string, password: string) {
     try {
-      const result =  await this.post('login', {
+      const result =  await this.post<LoginResponse>('login', {
         body: {email: username, password: password},
       });
       this.user = result.user;
       this.setToken(result);
-
       this.connectSocketIo('/admin');
       this.loginCallbacks.forEach((cb) => cb(this.user));
-      this.username = '';
-      this.password = '';
+      this.username = ''; 
+      
       return this.loginError = null;
     } catch (e) {
-      return this.loginError = e.message;
+      const err = e as ApiError;
+      if (err.code === ErrorCode.UNAUTHORIZED) {
+        this.loginError = 'Invalid username and/or password';
+      } else {
+        this.loginError = 'Something went wrong. Try again later.';
+      }
+      return this.loginError;
     } finally {
-      // do not persist credentials
+      this.password = ''; 
     }
   }
 
+  /**
+   * Dispose of the access token and clear user data
+   */
   @action 
-  logout = () => {
-    this.token = '';
-    this.tokenExpiration = null;
-    clearTimeout(this.tokenTimeout);
+  logout() {
+    this.user = null;
+    this.token = null;
+    this.tokenExpiration = new Date();
   }
 
   /**
    * We cannot _truly_ know whether the user is logged in until we hit the server
-   * with a request and see whether it accepts. However, the expiration of the token
-   * is a good indication that the user is actually logged in
+   * with a request and see whether it accepts. However, the presence and valid expiration 
+   * of the token is a good indication that the user is actually logged in.
    */
   @computed get isLoggedIn() {
-    return this.token.length !== 0 && this.tokenExpiration !== null && +this.tokenExpiration - Date.now() > 0;
+    return this.token != null && this.tokenExpiration != null && +this.tokenExpiration - Date.now() > 0;
   }
 
   /**
    * Add a task to be done when the user logs in
-   * @param cb the 
+   * @param cb the callback
    */
   onLogin(cb: LoginCallback) {
     this.loginCallbacks.push(cb);
@@ -90,22 +106,6 @@ export default class ApiStore implements ApiService {
       cb(this.user);
     }
   }
-
-  connectSocketIo(namespace: string) {
-    const socketUri = SERVER_URI + namespace;
-    // close previous socket
-    if (this.socketIo) {
-      this.socketIo.close();
-    }
-    this.socketIo = SocketIO(socketUri);
-    const io = this.socketIo;
-    io.on('connect', this.onSocketConnected);
-    // io.on('disconnect', this.onSocketDisconnected);
-  }
-
-  // onSocketDisconnected = (reason: string) => {
-  //   console.info('Socket disconnected. Reason: ' + reason);
-  // }
 
   /**
    * Allow other modules to register a callback to be executed when
@@ -120,98 +120,55 @@ export default class ApiStore implements ApiService {
   }
 
   /**
-   * Create an iterator over event stream for an event of given name
-   * WARNING: Should only be used with for-async-of, where
-   * next() is called immediately after the data is consumed.
-   * Otherwise a promise may be resolved twice, resulting in an error
-   * @param eventName 
-   */
-  socketEventStream<T>(eventName: string): AsyncIterableIterator<T> {
-    const io = this.socketIo;
-    let deferred: Deferred<IteratorResult<T>>;
-    const handler = (value: T) => {
-      if (deferred && !deferred.resolved) {
-        deferred.resolve({ value, done: false });
-      } else if (deferred.resolved) {
-        throw new Error('[socket event stream] Socket event stream deferred resolved twice');
-      } else {
-        console.warn('[socket event stream] Event stream has registered an event but there was no listener');
-      }
-    };
-    // attach the handler that will resolve the iterator promises
-    io.on(eventName, handler);
-
-    io.once('disconnect', () => {
-      io.off(eventName, handler);
-      if (!deferred.resolved) {
-        deferred.reject(new Error('Socket event stream broken: Socket disconnected'));
-      }
-    });
-
-    return {
-      next() {
-        deferred = new Deferred<IteratorResult<T>>();
-        return deferred;
-      },
-      [Symbol.asyncIterator]() {
-        return this;
-      },
-      return() {
-        // close the socket stream
-        io.off(eventName, handler);
-        return null;
-      }
-    };
-  }
-
-  /**
    * Wrapper around fetch which appends token to the request if the token is valid and
    * knows the route to the server. Requests are assumed to have a JSON body by default.
    * @param route 
    * @param options 
    */
-  async fetch(route: string, options?: RequestInit) {
-
+  async fetch<ResponseType>(route: string, options?: RequestInit): Promise<ResponseType> {
+    const APP_JSON = 'application/json';
     const defaults: RequestInit = {
       headers: this.isLoggedIn ? {'Authorization': `JWT ${this.token}`} : {}, 
       mode: 'cors',
     };
-    const opt = {...defaults, ...options};
+    const opt = merge({}, defaults, options);
     // auto stringify JSON body
     if (typeof opt.body === 'object') {
-      opt.headers['Content-Type'] = 'application/json';
+      opt.headers['Content-Type'] = APP_JSON;
       opt.body = JSON.stringify(opt.body);
     }
-
     const response = await fetch(httpApiRoute(route), opt);
     if (!response.ok) {
-      let message = response.statusText || response.status.toString();
-      if (response.headers.get('Content-Type').startsWith('application/json')) {
+      if (response.status === 403 || response.status === 401) {
+        this.logout();
+      } 
+      let message = response.statusText;
+      if (response.bodyUsed && response.headers.get('Content-Type').startsWith(APP_JSON)) {
         const body = await response.json();
         // different api routes tend to have a different status messages
         // arguably, this should be made consistent on server side.
-        message = body.message || body.status || body.error || message;
+        message = body.error || body.message || body.status || message;
       } 
-      throw new Error(message);
+      throw new ApiError(message, response.status);
     }
     return await response.json();
   }
 
   /* HTTP API convenience methods */
 
-  post(resource: string, options?: RequestInit) {
+  post<ResponseType>(resource: string, options?: RequestInit): Promise<ResponseType> {
     return this.fetch(resource, {method: 'POST', ...options});
   }
 
-  create(resource: string, options?: RequestInit) {
+  create<ResponseType>(resource: string, options?: RequestInit): Promise<ResponseType> {
     return this.post(resource, options);
   }
 
-  read(resource: string, options?: RequestInit) {
+  read<ResponseType>(resource: string, options?: RequestInit): Promise<ResponseType> {
     return this.fetch(resource, {method: 'GET', ...options});
   }
   
-  update(resource: string, options?: RequestInit) {
+  update<ResponseType>(resource: string, options?: RequestInit): Promise<ResponseType> {
     // make an 'intelligent' guess as to which update (PATCH/PUT) is used
     let body = options.body;
     let method = 'PUT';
@@ -227,15 +184,10 @@ export default class ApiStore implements ApiService {
   }
 
   /*** PRIVATE METHODS ***/
-  private setToken(response: {token: string, expires: string}) {
+  private setToken(response: LoginResponse) {
     this.token = response.token;
     this.tokenExpiration = new Date(response.expires);
-    if (this.tokenTimeout) {
-      clearTimeout(this.tokenTimeout);
-    }
-    this.tokenTimeout = window.setTimeout(
-      () => this.token = '', 
-      +this.tokenExpiration - Date.now());
+    setTimeout(() => this.logout(), +this.tokenExpiration - Date.now());
 
     // optionally set local storage
     if (hasLocalStorage()) {
@@ -244,7 +196,18 @@ export default class ApiStore implements ApiService {
     }
   }
 
-  private onSocketConnected = () => {
+  private connectSocketIo(namespace: string) {
+    const socketUri = SERVER_URI + namespace;
+    // close previous socket
+    if (this.socketIo) {
+      this.socketIo.close();
+    }
+    this.socketIo = SocketIO(socketUri);
+    const io = this.socketIo;
+    io.on('connect', () => this.socketConnectCallback());
+  }
+
+  private socketConnectCallback() {
     const io = this.socketIo;
     if (io.nsp === '/admin' && this.isLoggedIn) {
       io.emit('authenticate', { token: this.token });

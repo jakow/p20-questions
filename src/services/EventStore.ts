@@ -1,17 +1,16 @@
 import {action, observable, computed} from 'mobx';
-import {EventService} from './EventService';
-import {ApiService} from './ApiService';
+import ApiStore from './ApiStore';
 import {Speaker} from '../models/Speaker';
 import {Option} from '../components/Select';
 import {event, Event} from '../models/Event';
 
-export default class EventStore implements EventService {
+export default class EventStore {
   @observable events = new Map<string, Event>();
   @observable speakers = new Map<string, Speaker>();
   @observable selectedEvent: Event;
   @observable selectedSpeaker: Speaker;
 
-  constructor(private api: ApiService) {
+  constructor(private api: ApiStore) {
     this.fetchAll();
   }
 

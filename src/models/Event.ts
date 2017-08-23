@@ -4,13 +4,13 @@ import {VenueDocument} from './Venue';
 
 interface EventData {
   name: string;
-  type: string;
-  description: string;
+  type?: string;
+  description?: string;
   time: {
     start: Date;
     end: Date;
   };
-  image: ImageObject;
+  image?: ImageObject;
   venue: VenueDocument;
   speakers: string[];
 }

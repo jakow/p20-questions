@@ -3,36 +3,80 @@ import {observer, inject} from 'mobx-react';
 import Select, {Option} from '../../components/Select';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
-import {QuestionService} from '../../services/QuestionService';
-import {UiService} from '../../services/UiService';
-import {EventService} from '../../services/EventService';
+import {Question} from '../../models/Question';
+import QuestionStore from '../../services/QuestionStore';
+import UiStore from '../../services/UiStore';
+import EventStore from '../../services/EventStore';
 const style = require('./QuestionInputForm.pcss');
+
 interface QuestionInputFormProps {
-  questionStore?: QuestionService;
-  uiStore?: UiService;
-  eventStore?: EventService;
+  questionStore?: QuestionStore;
+  uiStore?: UiStore;
+  eventStore?: EventStore;
+}
+
+interface QuestionInputFormState {
+  question: Partial<Question>;
+  errors: {} | null;
 }
 
 @inject('questionStore', 'uiStore', 'eventStore')
 @observer
-export default class QuestionInputForm extends React.Component<QuestionInputFormProps, {}> {
+export default class QuestionInputForm extends React.Component<QuestionInputFormProps, QuestionInputFormState> {
+  constructor(props: QuestionInputFormProps) {
+    super(props);
+    const {eventStore} = this.props;
+    this.state = {
+      question: {
+        text: '',
+        askedBy: '',
+        forEvent: eventStore.selectedEvent ? eventStore.selectedEvent._id : '',
+        toPerson: '' 
+      },
+      errors: null
+    };
 
+  }
   onSubmit = async (ev: React.FormEvent<HTMLFormElement | HTMLButtonElement>) => {
     ev.preventDefault();
-    const errors = await this.props.questionStore.submitQuestion();
+    const question = {...this.state.question};
+    if (question.forEvent === '') {
+      question.forEvent = null;
+    }
+    if (question.toPerson === '') {
+      question.toPerson = null;
+    }
+    const errors = await this.props.questionStore.submitQuestion(question);
     if (errors) {
-      console.log(errors);
+      this.showErrors(errors);
     } else {
+      // reset input state
       this.props.uiStore.questionInputOpen = false;
+      this.setState({
+        question: {
+          text: '',
+          askedBy: '',
+          forEvent: this.props.eventStore.selectedEvent ? this.props.eventStore.selectedEvent._id : '',
+          toPerson: '',
+        }
+      });
     }
   }
 
-  onInputChange = (field: string, value: string) => {
-    this.props.questionStore.newQuestion[field] = value;
+
+
+  showErrors(errors: any) { //tslint:disable-line
+
+  }
+
+
+  onInputChange = (value: string, field: string) => {
+    this.setState({question: {...this.state.question, [field]: value}});
   }
   onEventSelect = (opt: Option) => {
-    const store = this.props.eventStore;
-    store.selectEvent(opt.value);
+    this.setState({question: {...this.state.question, forEvent: opt.value}});
+    // const store = this.props.eventStore;
+    // store.selectEvent(opt.value);
   }
 
   onSpeakerSelect = (opt: Option) => {
@@ -40,7 +84,7 @@ export default class QuestionInputForm extends React.Component<QuestionInputForm
   }
 
   render() {
-    const {newQuestion} = this.props.questionStore;
+    const question = this.state.question;
     const { eventOptions, speakerOptions} = this.props.eventStore;
     return (
     <form tabIndex={-1} className={style.questionForm} onSubmit={this.onSubmit}>
@@ -53,7 +97,7 @@ export default class QuestionInputForm extends React.Component<QuestionInputForm
           labelAsPlaceholder={true}
           className={style.input}
           labelClass={style.label}
-          value={newQuestion.text}
+          value={question.text}
           onChange={this.onInputChange} />
       </Field>
 
@@ -65,7 +109,8 @@ export default class QuestionInputForm extends React.Component<QuestionInputForm
           labelStyle="inline"
           className={style.selectContainer}
           labelClass={style.selectLabel}
-          options={eventOptions} 
+          options={eventOptions}
+          value={question.forEvent as string}
           onSelect={this.onEventSelect} />
       </Field>
       <Field>
@@ -87,10 +132,10 @@ export default class QuestionInputForm extends React.Component<QuestionInputForm
           labelAsPlaceholder={true}
           className={style.input}
           labelClass={style.label}
-          value={newQuestion.askedBy}
+          value={question.askedBy}
           onChange={this.onInputChange} />
       </Field>
-      <div className={style.buttonContainer}>
+      <div className={style.footer}>
         <Button type="submit" style="normal" className={style.button} onSubmit={this.onSubmit}>Send</Button>
       </div>
 

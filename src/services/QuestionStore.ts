@@ -1,60 +1,43 @@
 import {observable, computed, action} from 'mobx';
-import {ApiService} from './ApiService';
-import {question, Question} from '../models/Question';
-import {Speaker} from '../models/Speaker';
-import {Event} from '../models/Event';
+import {question, Question, QuestionSort, QuestionFilter} from '../models/Question';
+import ApiStore from './ApiStore';
+import UiStore from './UiStore';
+import EventStore from './EventStore';
 import * as validate from 'validate.js';
 type Id = string;
 type QuestionMap = Map<Id, Question>;
 
-enum QuestionSort {
-  BY_DATE_ACCEPTED,
-  BY_DATE_ADDED,
-  UNSORTED
-}
-
 export default class QuestionStore {
-  @observable fetching = false; // are questions being fetched from server?
   @observable questions: QuestionMap = new Map();
-
-  @observable newQuestion: Partial<Question> = {
-    text: '',
-    askedBy: '',
-    toPerson: '',
-    forEvent: '',
-  };
-  @observable sortMethod: QuestionSort = QuestionSort.BY_DATE_ACCEPTED;
+  @observable sort: QuestionSort = QuestionSort.BY_DATE_ADDED;
+  @observable filter: QuestionFilter = QuestionFilter.ACCEPTED;
 
   // for rendering a list of options when asking a question
-  @observable selectedEvent: Event = null;
-  @observable selectedSpeaker: Speaker = null;
 
-  @observable submittingQuestion: boolean = false;
-
-  constructor(private api: ApiService) {
-    this.init();
-  }
-
-  init() {
+  constructor(private api: ApiStore, private eventStore: EventStore, public uiStore: UiStore) {
     this.loadQuestions();
     this.api.onSocketConnection(this.initIO);
     this.api.onLogin(() => this.loadQuestions());
   }
 
-  initIO = async (io: SocketIOClient.Socket) => {
-    io.on('question', (q: Question) => this.updateQuestions([q]));
-    if (io.nsp === '/client') {
-      io.on('remove question', (id: string) => this.removeQuestion(id));
-    }
-  }
-
   @computed 
   get questionList() {
     let questions = Array.from(this.questions.values());
-    if (this.selectedEvent) {
-      questions = questions.filter((q) => q.forEvent === this.selectedEvent._id);
+    let selectedEvent = this.eventStore.selectedEvent;
+    if (selectedEvent) {
+      questions = questions.filter((q) => q.forEvent === selectedEvent._id);
     }
-    switch (this.sortMethod) {
+    switch (this.filter) {
+      case QuestionFilter.ACCEPTED:
+        questions = questions.filter(q => q.accepted && !q.archived);
+        break;
+      case QuestionFilter.UNARCHIVED:
+        questions = questions.filter(q => !q.archived);
+        break;
+      default:
+        break;
+    }
+    switch (this.sort) {
       case QuestionSort.BY_DATE_ACCEPTED:
         return questions.sort(byDateAccepted);
       case QuestionSort.BY_DATE_ADDED:
@@ -64,17 +47,28 @@ export default class QuestionStore {
     }
   }
 
-  @action 
   async loadQuestions() {
-    this.fetching = true;
+    this.uiStore.fetchingQuestions = true;
     try {
-      const questions = await this.api.fetch<any[]>('questions'); //tslint:disable-line
+      const questions = await this.api.read<Question[]>('questions'); //tslint:disable-line
       this.updateQuestions(questions);
+      this.uiStore.questionFetchError = false;
     } catch (e) {
-      // TODO: handle fetch error
-    } finally {
-      this.fetching = false;
+      this.uiStore.questionFetchError = true;
     }
+    this.uiStore.fetchingQuestions = false;
+  }
+
+  async sendQuestionToServer(q: Question, patch?: Partial<Question>) {
+    this.uiStore.fetchingQuestions = true;
+    let body;
+    if (patch) {
+      body = patch;
+    } else {
+      body = q;
+    }
+    await this.api.update(`questions/${q._id}`, {body});
+    this.uiStore.fetchingQuestions = false;
   }
 
   @action 
@@ -84,7 +78,7 @@ export default class QuestionStore {
     }
   }
 
-  @action 
+  @action
   removeQuestion(question: Question | Id) {
     if (typeof question === 'string') {
       this.questions.delete(question);
@@ -93,6 +87,10 @@ export default class QuestionStore {
     }
   }
 
+  /**
+   * Is this question valid?
+   * @param q 
+   */
   validateQuestion(q: Partial<Question>) {
     const constraints = {
       text: {
@@ -106,40 +104,37 @@ export default class QuestionStore {
         },
       }
     };
-    return validate(this.newQuestion, constraints);
+    return validate(q, constraints);
   }
 
-  @action async submitQuestion() {
-    this.newQuestion.forEvent = this.selectedEvent && this.selectedEvent._id;
-    this.newQuestion.toPerson = this.selectedSpeaker && this.selectedSpeaker._id;
-    const error = this.validateQuestion(this.newQuestion);
-    if (error) {
-      return error;
+  submitQuestion(q: Partial<Question>) {
+    const errors = this.validateQuestion(q);
+    if (errors) {
+      return errors;
     }
-    try {
-      this.fetching = true;
-      await this.api.create('questions', {
-        body: this.newQuestion,
-      });
-      this.resetQuestion();
-      this.selectedSpeaker = null;
-      return null;
-    } catch (e) {
-      return e.message;
-    } finally {
-      this.fetching = false;
-    }
+    this.api.create('questions', {
+      body: q
+    });
+
+    return null;
   }
 
-  @action resetQuestion() {
-    this.newQuestion.text = '';
-    this.newQuestion.askedBy = '';
-    this.newQuestion.forEvent = '';
-    this.newQuestion.toPerson = '';
+  private initIO = (io: SocketIOClient.Socket) => {
+    io.on('question', (q: Question) => this.updateQuestions([q]));
+    if (io.nsp === '/client') {
+      io.on('remove question', (id: string) => this.removeQuestion(id));
+    }
   }
 }
 
-// Question sorts 
+// Question sort methods
+
+/**
+ * Sort questions by acceptance date
+ * @param q1 first
+ * @param q2 second
+ * @return total order of questions by date
+ */
 function byDateAccepted(q1: Question, q2: Question) {
   if (typeof q2.dateAccepted === 'undefined') {
     return -1;
@@ -150,6 +145,15 @@ function byDateAccepted(q1: Question, q2: Question) {
   }
 }
 
+/**
+ * Sort questions by creation date
+ * @param q1 
+ * @param q2 
+ * @return total order of q1 and q2 by creation date
+ */
 function byDateCreated(q1: Question, q2: Question) {
   return +q1.dateCreated - +q2.dateCreated;
 }
+
+// TODO: Function decorator that awaits an async function and
+// shows a loading indicator in the meantime

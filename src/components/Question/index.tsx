@@ -11,22 +11,28 @@ interface QuestionProps extends React.Props<QuestionProps> {
   onChangeArchivedState?: (archived: boolean) => void;
 }
 
-const QuestionComponent = ({question, showControls, onChangeAcceptedState, onChangeArchivedState}: QuestionProps) => {
+export default function QuestionComponent(
+  {question, showControls, onChangeAcceptedState, onChangeArchivedState}: QuestionProps) {
   return (
     <div className={classnames(style.question, question.accepted ? style.accepted : null)}>
-      <p>{question.text}</p>
+      <div className={style.main}>
+      {question.toPerson && typeof question.toPerson !== 'string' ? 
+        <p className={style.to}>To {question.toPerson.name}:</p> : null}
+      <p className={style.text}>{question.text}</p>
       <div className={style.meta}>
-        {showControls ? (
-            <QuestionControls 
-            accepted={question.accepted} archived={question.archived} 
-            onChangeAcceptedState={onChangeAcceptedState} 
-            onChangeArchivedState={onChangeArchivedState}
-          />) : null
-        }
+
         {question.askedBy ? <p className={style.askedBy}><small>Asked by: {question.askedBy}</small></p> : null}
       </div>
     </div>
+    {showControls ? (
+      <div className={style.aside}> 
+        <QuestionControls
+          accepted={question.accepted} archived={question.archived}
+          onChangeAcceptedState={onChangeAcceptedState}
+          onChangeArchivedState={onChangeArchivedState}
+        /> 
+      </div>) : null
+    } 
+    </div>
   );
 };
-
-export default QuestionComponent;

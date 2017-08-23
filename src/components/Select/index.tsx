@@ -43,7 +43,6 @@ export default class Select extends React.Component<SelectProps, SelectState> {
   constructor(props: SelectProps) {
     super(props);
     // find first selected option
-  
   }
 
   onChange(ev: React.ChangeEvent<HTMLSelectElement>) {

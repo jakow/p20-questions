@@ -1,0 +1,59 @@
+@import '../../variables.pcss';
+
+
+.container {
+  & .control {
+    margin-bottom: 8px;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.control {
+  display: block;
+  composes: normal from '../Button/Button.pcss';
+  width: var(--verticalBaseline);
+  height: var(--verticalBaseline);
+  padding: 0;
+  border-radius: 50%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 12px 12px;
+}
+
+.accept {
+  composes: control;
+  background-color: var(--colorSuccess);
+  background-image: url('../../../public/accept.svg');
+  &:hover {
+    background-color: color(var(--colorSuccess) shade(10%));
+  }
+}
+
+.reject {
+  composes: control;
+  background-color: var(--colorError);
+  background-image: url('../../../public/reject.svg');
+  &:hover {
+    background-color: color(var(--colorError) shade(10%));
+  }
+}
+
+.archive {
+  composes: control;
+  background-color: white;
+  background-image: url('../../../public/archive.svg');
+  &:hover {
+    background-color: color(white shade(10%));
+  }
+}
+
+.unarchive {
+  composes: control;
+  background-color: white;
+  background-image: url('../../../public/unarchive.svg');
+  &:hover {
+    background-color: color(white shade(10%));
+  }
+}

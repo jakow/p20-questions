@@ -16,28 +16,27 @@ export default class QuestionControls extends React.Component<QuestionControlsPr
     archived: false,
   };
   render() {
+    const {accepted, archived} = this.props;
     return (
-      <div className={style.controls}>
-      {!this.props.accepted ? 
-        <Button className={style.accept} onClick={() => this.handleAccept(true)}>Accept</Button> : null}
-      {this.props.accepted ? 
-        <Button className={style.reject} onClick={() => this.handleAccept(false)}>Reject</Button> : null}
-      {!this.props.archived ? 
-          <Button className={style.archive} onClick={() => this.handleArchive(true)}>Archive</Button> : null}
-      {this.props.archived ? 
-          <Button className={style.unarchive} onClick={() => this.handleArchive(false)}>Unarchive</Button> : null}    
+      <div className={style.container}>
+        <Button 
+          title={accepted ? 'Accepted' : 'Rejected'}
+          className={accepted ? style.accept : style.reject} 
+          onClick={() => this.handleAccept(!accepted)}/>
+        <Button 
+          title={archived ? 'Unarchive' : 'Archive'}
+          className={archived ? style.unarchive : style.archive} 
+          onClick={() => this.handleArchive(!archived)}/>
     </div>);
   }
 
   handleAccept(state: boolean) {
-    console.log('handle accept');
     if (this.props.onChangeAcceptedState) {
       this.props.onChangeAcceptedState(state);
     }
   }
 
   handleArchive(state: boolean) {
-    console.log('handle archive');
     if (this.props.onChangeArchivedState) {
       this.props.onChangeArchivedState(state);
     }

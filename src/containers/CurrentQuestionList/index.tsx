@@ -1,34 +1,46 @@
 import * as React from 'react';
 import {observer, inject} from 'mobx-react';
-import QuestionComponent from '../../components/Question';
-import {QuestionService} from '../../services/QuestionService';
-import {ApiService} from '../../services/ApiService';
+import Question from '../../components/Question';
+import QuestionStore from '../../services/QuestionStore';
+import ApiStore from '../../services/ApiStore';
+import EventStore from '../../services/EventStore';
+import UiStore from '../../services/UiStore';
 import Overlay from '../../components/Overlay';
 import Spinner from '../../components/Spinner';
 const style = require('./CurrentQuestionList.pcss');
 
 interface CurrentQuestionListProps {
-  questionStore?: QuestionService;
-  apiStore?: ApiService;
+  questionStore?: QuestionStore;
+  apiStore?: ApiStore;
+  uiStore?: UiStore;
+  eventStore?: EventStore;
 }
 
-@inject('questionStore', 'apiStore') 
+@inject('questionStore', 'apiStore', 'uiStore', 'eventStore') 
 @observer 
 class CurrentQuestionList extends React.Component<CurrentQuestionListProps, {}> {
   render () {
-    const {questionStore, apiStore} = this.props;
+    const {questionStore, apiStore, uiStore, eventStore} = this.props;
+    // substitute person ids with person data
+    const questions = questionStore.questionList.map(q => {
+      if (typeof q.toPerson === 'string') {
+        const person = eventStore.speakers.get(q.toPerson);
+        q.toPerson = person || null;
+      }
+      return q;
+    });
     return (
     <div>
       <ol className={style.list}> { 
-        questionStore.questionList.map((q) => (
+        questions.map((q) => (
         <li key={q._id}>
-          <QuestionComponent
+          <Question
           question={q} 
           showControls={apiStore.isLoggedIn}
-          onChangeAcceptedState={(state) => q.accepted = state}
-          onChangeArchivedState={(state) => q.archived = state}/></li>))  
+          onChangeAcceptedState={(accepted) => questionStore.sendQuestionToServer(q, {accepted})}
+          onChangeArchivedState={(archived) => questionStore.sendQuestionToServer(q, {archived})}/></li>))  
       } </ol>
-      <Overlay className={style.overlay} show={questionStore.fetching}><Spinner /></Overlay>
+      <Overlay className={style.overlay} show={uiStore.fetchingQuestions}><Spinner /></Overlay>
     </div>
     );
   }

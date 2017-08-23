@@ -1,12 +1,22 @@
 @import '../../variables.pcss';
 
 .question {
-  display: block;
-  padding: 1.5rem;
+  display: flex;
   color: var(--textColor);
   background: var(--backgroundGray);
-  border-radius: 10px;
+  border-radius: 12px;
 }
+.main {
+  padding: 1rem;
+}
+.aside {
+  padding: 8px;
+  /* border-left: 1px solid rgba(0, 0, 0, 0.1); */
+  border-left: 3px solid white;
+  border-radius: 0 12px 12px 0;
+  margin-left: 4px;
+}
+
 
 .accepted.question {
   background: var(--colorTernary);
@@ -14,10 +24,16 @@
 
 .askedBy {
   text-align: right;
+  margin-bottom: 0;
 }
 
-.question p {
-  margin: 0rem 0 1.33rem;
+.text {
+  margin-bottom: 1rem;
+}
+
+.to {
+  font-size: 0.8em;
+  margin-bottom: 0;
 }
 
 .question > :last-child {

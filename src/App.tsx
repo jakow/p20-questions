@@ -1,5 +1,3 @@
-/* tslint:disable no-console */
-import 'core-js';
 import * as React from 'react';
 import {Provider} from 'mobx-react';
 const style = require('./App.pcss');
@@ -11,6 +9,7 @@ import QuestionStore from './services/QuestionStore';
 import EventStore from './services/EventStore';
 import ApiStore from './services/ApiStore';
 import UiStore from './services/UiStore';
+
 class App extends React.Component<null, null> {
   private apiStore: ApiStore;
   private uiStore: UiStore;
@@ -21,12 +20,14 @@ class App extends React.Component<null, null> {
 
   }
 
+  // Makes sure that the stores are created only during mounting, i.e. on client
   componentWillMount() {
     this.apiStore = new ApiStore();
     this.uiStore = new UiStore();
-    // dependency injection!
+    (window as any).uiStore = this.uiStore; // tslint:disable-line
+    // dependency injection
     this.eventStore = new EventStore(this.apiStore);
-    this.questionStore = new QuestionStore(this.apiStore);
+    this.questionStore = new QuestionStore(this.apiStore, this.eventStore, this.uiStore);
   }
 
   render() {

@@ -3,9 +3,9 @@ import {ImageObject} from './ImageObject';
 interface SpeakerData {
   name: string;
   position: string;
-  company: string;
-  photo: ImageObject;
-  description: string;
+  company?: string;
+  photo?: ImageObject;
+  description?: string;
 }
 
 export type Speaker = Document<SpeakerData>;

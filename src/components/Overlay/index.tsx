@@ -14,11 +14,11 @@ export default function Overlay({show, children, onClick, className}: OverlayPro
   <ReactCssTransitionGroup
   transitionName={style}
   transitionEnter={true}
-  transitionEnterTimeout={400}
+  transitionEnterTimeout={150}
   transitionLeave={true}
-  transitionLeaveTimeout={400}
+  transitionLeaveTimeout={150}
   transitionAppear={true}
-  transitionAppearTimeout={400}
+  transitionAppearTimeout={150}
   >
     {show ? (
       <div key="overlay" 

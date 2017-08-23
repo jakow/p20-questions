@@ -43,9 +43,9 @@ export default class LazyImage extends React.Component<LazyImageProps, LazyImage
       await fetch(this.props.placeholder);
       this.setState({placeholderLoaded: true});
       await fetch(this.props.source);
-      this.setState({sourceLoaded: true})
-    } catch(e) {
-      console.error(e);
+      this.setState({sourceLoaded: true});
+    } catch (e) {
+      // do nothing 
     }
   }
 
@@ -64,8 +64,8 @@ export default class LazyImage extends React.Component<LazyImageProps, LazyImage
         transitionName={style}
         transitionEnter={true}
         transitionLeave={true}
-        transitionEnterTimeout={300}
-        transitionLeaveTimeout={300}
+        transitionEnterTimeout={200}
+        transitionLeaveTimeout={200}
         >
         {placeholderLoaded && !sourceLoaded ? 
           <img key="placeholder" alt={alt} src={placeholder} className={style.placeholder}/> : null}

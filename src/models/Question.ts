@@ -13,6 +13,18 @@ export interface QuestionData {
   dateAccepted?: Date;
 }
 
+export enum QuestionSort {
+  BY_DATE_ACCEPTED,
+  BY_DATE_ADDED,
+  UNSORTED,
+}
+
+export enum QuestionFilter {
+  ACCEPTED,
+  UNARCHIVED,
+  ALL,
+}
+
 export type Question = Document<QuestionData>;
 
 const prototype: Question = {

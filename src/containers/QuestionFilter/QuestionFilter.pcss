@@ -2,15 +2,25 @@
 .container {
   padding: 1rem;
   display: flex;
-  justify-content: center;
   background-color: white;
   border-bottom: 1px solid var(--borderGray);
   box-shadow: 0 0 3px 0 rgba(0, 0, 0, 0.08);
+  flex-direction: column;
+  justify-content: center;
+  @media (min-width: 640px) {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
 }
 
 .selectContainer {
   inherits: responsiveContainer from '../../Select/Select';
   max-width: 500px;
+  @media (min-width: 640px) {
+    &:not(:first-child) {
+      margin-left: 1.5rem;
+    }
+  }
 }
 
 .caption {

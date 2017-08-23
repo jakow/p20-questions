@@ -2,8 +2,8 @@ import * as React from 'react';
 import Modal from 'react-modal';
 import * as classnames from 'classnames';
 import {observer, inject} from 'mobx-react';
-import {UiService} from '../../services/UiService';
-import {ApiService} from '../../services/ApiService';
+import UiStore from '../../services/UiStore';
+import ApiStore from '../../services/ApiStore';
 import {ModalHeader, ModalBody} from '../../components/Modal';
 const coreStyle = require('../../components/Modal/Modal.pcss');
 const style = require('./LoginModal.pcss');
@@ -13,14 +13,14 @@ import Button from '../../components/Button';
 Modal.setAppElement(document.getElementById('app') as HTMLElement);
 
 interface LoginModalProps {
-  uiStore?: UiService;
-  apiStore?: ApiService;
+  uiStore?: UiStore;
+  apiStore?: ApiStore;
 }
 
 @inject('uiStore', 'apiStore')
 @observer
 export default class LoginModal extends React.Component<LoginModalProps, null> {
-  onInputChange = (field: string, value: string) => {
+  onInputChange = (value: string, field: string) => {
     if (field === 'username') {
       this.props.apiStore.username = value;
     } else {
