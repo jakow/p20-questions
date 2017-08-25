@@ -13,11 +13,11 @@ interface TransformationOptions {
 
 export default function transform(url: string, options: TransformationOptions | TransformationOptions[]) {
   const parsed = new URL(url);
-  let query = parsed.pathname.split('/');
-  let idx = query.indexOf('upload');
+  const query = parsed.pathname.split('/');
+  const idx = query.indexOf('upload');
   const opts = Array.isArray(options) ? options : [options]; // coerce to array 
   // build string from each transformation
-  let optStrings = opts.map(transformString);
+  const optStrings = opts.map(transformString);
   // insert the transformations into query params
   query.splice(idx, 0, ...optStrings);
   parsed.pathname = query.join('/');

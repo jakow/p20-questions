@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {observer} from 'mobx-react';
+import {debounce} from 'lodash';
 import * as classnames from 'classnames';
 import TextareaAutosize from 'react-textarea-autosize';
 const style = require('./Input.pcss');
@@ -20,16 +21,25 @@ interface InputProps {
   className?: string;
   invalidClassName?: string;
   autoComplete?: 'on' | 'off';
-  // validation
-  validator?: (v: string) => boolean | string;
-  isValid?: boolean;
+  // functional validator 
+  validator?: (v: string) => false | string | string[];
+  // external validator
+  isValid?: boolean | string;
+  // as you type, you don't want red flashing at you. This prop debounces the input 
+  validatorDelay?: number;
+}
+
+interface InputState {
+  pristine: boolean;
+  valid: boolean;
+  errors: string[];
 }
 
 /**
- *  use this component for text inputs only. The input value must be bound to mobx state.
+ *  use this component for text inputs only. The input value should be bound to mobx state.
  */
 @observer
-export default class Input extends React.Component<InputProps, {}> {
+export default class Input extends React.Component<InputProps, InputState> {
   static defaultProps: Partial<InputProps> = {
     type: 'text',
     className: style.input,
@@ -38,9 +48,38 @@ export default class Input extends React.Component<InputProps, {}> {
     autoComplete: 'off',
     rows: 1,
   };
+  
+  private debouncedValidate: () => void;
 
   constructor(props: InputProps) {
     super(props);
+    this.state = {
+      pristine: true,
+      valid: true,
+      errors: null,
+    };
+    if (this.props.validatorDelay) {
+      this.debouncedValidate = debounce(() => this.validate() , this.props.validatorDelay);
+    }
+
+  }
+
+  componentWillReceiveProps(props: InputProps) {
+    if (this.props.validatorDelay !== props.validatorDelay) {
+      this.debouncedValidate = debounce(() => this.validate(), this.props.validatorDelay);
+    }
+  }
+
+  render() {
+    const { className, invalidClassName, label, labelClass, id, value, labelAsPlaceholder } = this.props;
+    const { pristine, valid } = this.state;
+    const classes = classnames(className, (!pristine && !valid) ? invalidClassName : null);
+    return (
+      <div className={classes}>
+        {this.renderInput()}
+        <Label htmlFor={id} className={labelClass} asPlaceholder={labelAsPlaceholder}
+          show={value === ''}>{label}</Label>
+      </div>);
   }
 
   renderInput() {
@@ -70,19 +109,17 @@ export default class Input extends React.Component<InputProps, {}> {
       );
   }
 
-  render() {
-    const {className, invalidClassName, label, labelClass, id, value} = this.props;
-    return (
-    <div className={classnames(className, this.valid && invalidClassName)}>
-    {this.renderInput()}
-    <Label htmlFor={id} className={labelClass} asPlaceholder={this.props.labelAsPlaceholder} 
-      show={value === ''}>{label}</Label>
-    </div>);
- }
-
- onChange = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-   this.props.onChange(event.target.value, event.target.name);
- }
+  onChange = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+    if (this.state.pristine) {
+      this.setState({pristine: false});
+    }
+    if (this.props.validatorDelay) {
+      this.debouncedValidate();
+    } else {
+      this.validate();
+    }
+    this.props.onChange(event.target.value, event.target.name);
+  }
 
  onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>) => {
    if (this.props.onKeyDown) {
@@ -90,16 +127,22 @@ export default class Input extends React.Component<InputProps, {}> {
    }
  }
 
- get valid(): boolean {
-    if (typeof this.props.isValid !== 'undefined') {
-      return this.props.isValid;
-    } else if (typeof this.props.validator !== 'undefined') {
-      return this.props.validator(this.props.value) === true;
-    } else {
-      return true;
-    }
-  }
-
+ validate() {
+   let valid = true;
+   let errors = null;
+   if (typeof this.props.isValid !== 'undefined') {
+     valid = this.props.isValid === true;
+   } else if (typeof this.props.validator !== 'undefined') {
+     const validatorResult = this.props.validator(this.props.value);
+     valid = validatorResult === true;
+     if (Array.isArray(validatorResult)) {
+       errors = validatorResult;
+     } else if (typeof validatorResult === 'string') {
+       errors = [validatorResult];
+     }
+   }
+   this.setState({ valid, errors });
+ }
 }
 
 interface LabelProps {

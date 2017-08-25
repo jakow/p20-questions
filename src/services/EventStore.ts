@@ -1,8 +1,7 @@
 import {action, observable, computed} from 'mobx';
 import ApiStore from './ApiStore';
 import {Speaker} from '../models/Speaker';
-import {Option} from '../components/Select';
-import {event, Event} from '../models/Event';
+import {Event} from '../models/Event';
 
 export default class EventStore {
   @observable events = new Map<string, Event>();
@@ -15,7 +14,7 @@ export default class EventStore {
   }
 
   @computed get eventOptions() {
-    const options: Option[] = [{ name: 'Anything', value: '' }];
+    const options = [{ name: 'Anything', value: '' }];
     for (const e of this.eventList) {
       options.push({
         name: e.name,
@@ -32,7 +31,7 @@ export default class EventStore {
     } else {
       speakers = this.speakerList;
     }
-    const options: Option[] = [{ name: 'All speakers', value: '' }];
+    const options = [{ name: 'All speakers', value: '' }];
     for (const s of speakers) {
       options.push({ name: s.name, value: s._id });
     }
@@ -66,9 +65,9 @@ export default class EventStore {
 
   @action
   async fetchEvents() {
-      const result = await this.api.read<any>('events'); // tslint:disable-line
+      const result = await this.api.read<Event[]>('events'); // tslint:disable-line
       for (const e of result) {
-        this.events.set(e._id, event(e));
+        this.events.set(e._id, e);
       }
   }
 
@@ -91,10 +90,12 @@ export default class EventStore {
     return Array.from(this.events.values()).filter((e) => e.speakers.includes(id));
   }
 
-  private async fetchAll() {
+  private fetchAll() {
     // TODO consider graphql to minimize requests
-    this.fetchSpeakers();
-    this.fetchEvents();
+    return Promise.all([
+      this.fetchSpeakers(),
+      this.fetchEvents(),
+    ]);
 
   }
 }

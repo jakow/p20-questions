@@ -1,7 +1,13 @@
+@import '../../variables.pcss';
+
+:root {
+  --buttonSize: 2.5rem;
+}
 .modal {
   border: 1px solid rgba(0, 0, 0, 0.12);
   background: white;
   min-width: 300px;
+  position: relative;
 }
 
 .overlay {
@@ -38,4 +44,19 @@
 
 .body {
   padding: 1rem 1.25rem;
+}
+
+.close {
+  display: block;
+  position: absolute;
+  right: 0;
+  top: calc(-1rem - var(--buttonSize));
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.closeIcon {
+  display: block;
+    width: var(--buttonSize);
+  height: var(--buttonSize);
 }

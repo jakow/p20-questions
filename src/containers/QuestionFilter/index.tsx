@@ -57,6 +57,7 @@ export default class QuestionFilter extends React.Component<QuestionFilterProps,
           id="qfilter-question-filter"
           options={filterOptions}
           onSelect={this.onFilterSelect}
+          value={this.props.questionStore.filter.toString()}
           label="Filter questions:"
           labelStyle="top"
         />

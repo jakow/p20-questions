@@ -5,20 +5,22 @@
   position: relative;
   padding-top: 1.5rem;
   margin-bottom: 1.5rem;
-}
+  background-color: white;
+  transition: background-color 200ms ease-in-out;
 
-.input input, .input textarea {
-  display: block;
-  border: 1px solid #ddd;
-  width: 100%;
-  line-height: 1.5rem;
-  font-size: 1rem;
-  padding: 0.5rem;
-  outline: none;
-  margin: 0;
-  -webkit-appearance: none;
-  color: var(--textColor);
-  border-radius: 8px;
+  & input, & textarea {
+    display: block;
+    border: 1px solid #ddd;
+    width: 100%;
+    line-height: 1.5rem;
+    font-size: 1rem;
+    padding: 0.5rem;
+    outline: none;
+    margin: 0;
+    -webkit-appearance: none;
+    color: var(--textColor);
+    border-radius: 8px;
+  }
 }
 
 .input textarea {
@@ -29,6 +31,10 @@
   box-shadow: 0 0 0 2px var(--outlineColor);
   border-color: var(--outlineColor);
   // outline-offset: 0px;
+}
+
+.invalid {
+  background-color: var(--colorInputError);
 }
 
 .label {

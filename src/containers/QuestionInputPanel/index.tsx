@@ -84,6 +84,10 @@ export default class QuestionInputPanel extends React.Component<QuestionInputPan
       this.setState({panelHeight: newHeight});
     }
   }
+
+  getContainer = (elem: HTMLElement) => this.container = elem;
+  
+  getPanelElement = (elem: HTMLElement) => this.panelElement = elem;
   
   render() {
     // const {show} = this.props;
@@ -92,13 +96,13 @@ export default class QuestionInputPanel extends React.Component<QuestionInputPan
     return (
       <div>
         <Overlay show={show} onClick={this.handleOverlayClick} className={style.overlay}/>
-        <Panel show={show} height={panelHeight} onEscape={this.close} refElem={(elem) => this.container = elem}>
+        <Panel show={show} height={panelHeight} onEscape={this.close} refElem={this.getContainer}>
         
           <div className={style.panelButtons} onClick={this.handleOverlayClick}>
             <MorphingCloseButton isClose={show} onClick={this.handleAskButtonClick}>Ask a question</MorphingCloseButton>
           </div>
             
-          <div className={style.panelMain} ref={(element) => this.panelElement = element}>
+          <div className={style.panelMain} ref={this.getPanelElement}>
             <QuestionInputForm/>
           </div>
         </Panel>
@@ -116,15 +120,17 @@ interface PanelProps {
 }
 function Panel({height, children, show, refElem, onEscape}: PanelProps) {
   const offset = show ? 0 : -height;
+  function onKeyDown(ev: React.KeyboardEvent<HTMLDivElement>) {
+    if (show && onEscape && ev.keyCode === 27) {
+      onEscape();
+    }
+  };
+
   return (
     <div ref={refElem}
     className={show ? style.show : style.panel}
-    onKeyDown={(ev) => {
-      if (show && onEscape && ev.keyCode === 27) {
-        onEscape();
-      }
-    }}
+    onKeyDown={onKeyDown}
     style={{transform: `translateY(${-offset}px)`}}>{children}
-    </div>);
-  }
-  
+    </div>
+  );
+}

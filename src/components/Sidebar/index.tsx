@@ -9,6 +9,7 @@ const style = require('./Sidebar.pcss');
 interface SidebarProps extends React.Props<SidebarProps> {
   uiStore?: UiStore;
 }
+// tslint:disable-next-line:variable-name
 const Sidebar = inject('uiStore')(({uiStore}: SidebarProps) => (
   <aside className={style.sidebar}>
     <header className={style.header}>
@@ -19,7 +20,8 @@ const Sidebar = inject('uiStore')(({uiStore}: SidebarProps) => (
       <CurrentEventView/>
     </div>
     <footer className={style.footer}>
-      <Button style="transparent" onClick={() => uiStore.loginModalOpen = true}>Log in</Button>
+      {/* tslint:disable-next-line*/}
+      <Button style="transparent" onClick={() => uiStore.loginModalOpen = true}>Log in</Button> 
     </footer>
   </aside>
   ));

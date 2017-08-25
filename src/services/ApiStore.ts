@@ -7,29 +7,14 @@ import ApiError, {ErrorCode} from './ApiError';
 import hasLocalStorage from '../helpers/hasLocalStorage';
 import {TOKEN, TOKEN_EXPIRATION, SERVER_URI} from '../constants';
 
-interface SocketConnectionCallback {
-  (s: SocketIOClient.Socket): void;
-}
 
-interface LoginCallback {
-  (user: User): void;
-}
-
-interface LoginResponse {
-  token: string;
-  expires: string;
-  user: User;
-}
 
 export const httpApiRoute = (route: string) => `${SERVER_URI}/api/${route}`;
 
 export default class ApiStore {
-
   @observable tokenExpiration: Date = null;
   @observable user: User = null;
   @observable loginError: string = null;
-  
-  // login data
   @observable username: string = '';
   @observable password: string = '';
 
@@ -215,4 +200,18 @@ export default class ApiStore {
     }
     this.socketConnectionCallbacks.forEach((callback) => callback(io));
   }
+}
+
+interface SocketConnectionCallback {
+  (s: SocketIOClient.Socket): void;
+}
+
+interface LoginCallback {
+  (user: User): void;
+}
+
+interface LoginResponse {
+  token: string;
+  expires: string;
+  user: User;
 }

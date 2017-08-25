@@ -49,28 +49,41 @@ export default class LazyImage extends React.Component<LazyImageProps, LazyImage
     }
   }
 
+  renderPlaceholder() {
+    const { placeholder, alt } = this.props;
+    const { placeholderLoaded, sourceLoaded } = this.state;
+    if (placeholderLoaded && !sourceLoaded) {
+      return <img key="placeholder" alt={alt} src={placeholder} className={style.placeholder} />;
+    } else {
+      return null;
+    }
+  }
+
+  renderOriginal() {
+    const { source, alt } = this.props;
+    const { sourceLoaded } = this.state;
+    return sourceLoaded ? <img alt={alt} className={style.original} src={source}/> : null;
+  }
+
   render() {
     let aspectRatio = this.props.aspectRatio;
     if (typeof aspectRatio === 'string') {
       const [num, denom] = aspectRatio.split(':').map((n) => parseFloat(n));
       aspectRatio = num / denom;
     }
-    const {placeholder, source, alt, width} = this.props;
-    const {placeholderLoaded, sourceLoaded} = this.state;
+    const width = this.props.width;
     return (
       <div className={style.container} style={{width}}>
         <div className={style.spacer} style={{paddingBottom: `${1 / aspectRatio * 100}%`}}/>
         <ReactCSSTransitionGroup
-        transitionName={style}
-        transitionEnter={true}
-        transitionLeave={true}
-        transitionEnterTimeout={200}
-        transitionLeaveTimeout={200}
+          transitionName={style}
+          transitionEnter={true}
+          transitionLeave={true}
+          transitionEnterTimeout={200}
+          transitionLeaveTimeout={200}
         >
-        {placeholderLoaded && !sourceLoaded ? 
-          <img key="placeholder" alt={alt} src={placeholder} className={style.placeholder}/> : null}
-        {sourceLoaded ? 
-          <img alt={alt} className={style.original} src={source}/> : null}
+          {this.renderPlaceholder()}
+          {this.renderOriginal()}
         <Spinner key="spinner"/> 
         </ReactCSSTransitionGroup>
       </div>

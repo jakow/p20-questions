@@ -6,7 +6,7 @@ interface SelectProps {
   
   name: string;
   id: string;
-  value?: string; 
+  value?: string | Option; 
   onSelect?: (selected: Option) => void;
   label: string;
   labelStyle?: 'inline' | 'top' | 'option' | 'responsive';
@@ -14,27 +14,13 @@ interface SelectProps {
   
   // for overriding styles
   className?: string;
-  style?: React.CSSProperties;
 }
 
-interface SelectState {
-  value: string;
-}
-
-export interface Option {
-  name: string;
-  label?: string;
-  value?: string;
-  disabled?: boolean;
-}
-
-export interface OptionGroup {
-  options: Option[];
-  label?: string;
-  disabled?: boolean;
-}
-
-export default class Select extends React.Component<SelectProps, SelectState> {
+/**
+ * Externally controlled select input. Changes select behaviour to use Option objects
+ * rather than strings as values
+ */
+export default class Select extends React.Component<SelectProps, null> {
   static defaultProps: Partial<SelectProps> = {
     labelStyle: 'top',
     options: [],
@@ -45,12 +31,18 @@ export default class Select extends React.Component<SelectProps, SelectState> {
     // find first selected option
   }
 
-  onChange(ev: React.ChangeEvent<HTMLSelectElement>) {
-    const value = ev.target.value;
-    this.setState({value});
+  onChange = (ev: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = ev.target.value || null;
+    console.log(value);
     if (this.props.onSelect) {
-      const opt = this.optionsOnly().find((o) => o.value === ev.target.value || o.name === ev.target.value);
-      this.props.onSelect(opt);
+      let option;
+      if (value === null) {
+        option = null;
+      } else {
+        option = this.optionsOnly().find((o) => o.value === value || o.name === ev.target.value);
+      }
+      console.log(option);
+      this.props.onSelect(option);
     }
   }
 
@@ -69,28 +61,52 @@ export default class Select extends React.Component<SelectProps, SelectState> {
   render() {
     const {labelStyle, labelClass, options, id, label, className} = this.props;
     const containerClass = className || style[labelStyle + 'Container'];
-    return(
+
+    // use option value or option name or empty string
+    let selectValueString = '';
+    const value = this.props.value;
+    if (typeof value === 'string') {
+      selectValueString = value;
+    } else if (isOpt(value)) {
+      selectValueString = value.value || value.name;
+    }
+
+    return (
       <div className={containerClass}>
         <label className={labelClass} htmlFor={id}>{label}</label>
         <div className={style.selectContainer}>
           <select
           className={style.select}
-          id={id} style={style} 
-          onChange={(ev) => this.onChange(ev)}
-          value={this.props.value}
+          id={id}
+          onChange={this.onChange}
+          value={selectValueString}
           >
-          {/* placeholder as label */}
-          {labelStyle === 'option' ? <option disabled={true} value="">{label}</option> : null}
-          {options.map((o) => isOpt(o) ? <Opt key={o.label || o.name} {...o}/> : <OptGroup key={o.label} {...o}/>)}
+            {labelStyle === 'option' ? <option disabled={true} value="">{label}</option> : null}
+            {options.map((o) => isOpt(o) ? <Opt key={o.value || o.name} {...o}/> : <OptGroup key={o.label} {...o}/>)}
           </select>
-          <div className={style.icon}/>
+        <div className={style.icon}/>
         </div>
       </div>
     );
   }
 }
 
-function isOpt(o: Option | OptionGroup): o is Option {
+export interface Option {
+  name: string;
+  value?: string;
+  disabled?: boolean;
+}
+
+export interface OptionGroup {
+  options: Option[];
+  label?: string;
+  disabled?: boolean;
+}
+
+function isOpt(o: {}): o is Option {
+  if (o == null) {
+    return false;
+  }
   return typeof (o as any).name !== 'undefined'; //tslint:disable-line
 }
 

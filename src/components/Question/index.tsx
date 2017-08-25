@@ -13,26 +13,41 @@ interface QuestionProps extends React.Props<QuestionProps> {
 
 export default function QuestionComponent(
   {question, showControls, onChangeAcceptedState, onChangeArchivedState}: QuestionProps) {
+
+  function renderTo() {
+    let name = '';
+    if (question.toPerson && typeof question.toPerson === 'object') {
+      name = question.toPerson.name;
+    }
+    return name ? <p className={style.to}>To {name}:</p> : null;
+  }
+
+  function renderControls() {
+    if (showControls) {
+      return (
+        <div className={style.aside}>
+          <QuestionControls
+            accepted={question.accepted} archived={question.archived}
+            onChangeAcceptedState={onChangeAcceptedState}
+            onChangeArchivedState={onChangeArchivedState}
+          />
+        </div>
+      );
+    } else {
+      return null;
+    }
+  }
+
   return (
     <div className={classnames(style.question, question.accepted ? style.accepted : null)}>
       <div className={style.main}>
-      {question.toPerson && typeof question.toPerson !== 'string' ? 
-        <p className={style.to}>To {question.toPerson.name}:</p> : null}
+      {renderTo()}
       <p className={style.text}>{question.text}</p>
       <div className={style.meta}>
-
         {question.askedBy ? <p className={style.askedBy}><small>Asked by: {question.askedBy}</small></p> : null}
       </div>
     </div>
-    {showControls ? (
-      <div className={style.aside}> 
-        <QuestionControls
-          accepted={question.accepted} archived={question.archived}
-          onChangeAcceptedState={onChangeAcceptedState}
-          onChangeArchivedState={onChangeArchivedState}
-        /> 
-      </div>) : null
-    } 
+    {renderControls()}
     </div>
   );
 };
