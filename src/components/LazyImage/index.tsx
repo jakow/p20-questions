@@ -40,13 +40,22 @@ export default class LazyImage extends React.Component<LazyImageProps, LazyImage
 
   async loadImages() {
     try {
-      await fetch(this.props.placeholder);
+      await this.download(this.props.placeholder);
       this.setState({placeholderLoaded: true});
-      await fetch(this.props.source);
+      await this.download(this.props.source);
       this.setState({sourceLoaded: true});
     } catch (e) {
-      // do nothing 
+      // do nothing - spinner will keep showing
     }
+  }
+
+  download(url: string) {
+    return new Promise<void>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => reject();
+      img.src = url;
+    });
   }
 
   renderPlaceholder() {
@@ -62,7 +71,7 @@ export default class LazyImage extends React.Component<LazyImageProps, LazyImage
   renderOriginal() {
     const { source, alt } = this.props;
     const { sourceLoaded } = this.state;
-    return sourceLoaded ? <img alt={alt} className={style.original} src={source}/> : null;
+    return sourceLoaded ? <img alt={alt} key="original" className={style.original} src={source}/> : null;
   }
 
   render() {
@@ -71,11 +80,14 @@ export default class LazyImage extends React.Component<LazyImageProps, LazyImage
       const [num, denom] = aspectRatio.split(':').map((n) => parseFloat(n));
       aspectRatio = num / denom;
     }
+    const { sourceLoaded, placeholderLoaded } = this.state;
     const width = this.props.width;
     return (
       <div className={style.container} style={{width}}>
         <div className={style.spacer} style={{paddingBottom: `${1 / aspectRatio * 100}%`}}/>
         <ReactCSSTransitionGroup
+          className={style.image}
+          component="div"
           transitionName={style}
           transitionEnter={true}
           transitionLeave={true}
@@ -84,7 +96,7 @@ export default class LazyImage extends React.Component<LazyImageProps, LazyImage
         >
           {this.renderPlaceholder()}
           {this.renderOriginal()}
-        <Spinner key="spinner"/> 
+        {!(sourceLoaded && placeholderLoaded) ? <Spinner key="spinner"/>  : null}
         </ReactCSSTransitionGroup>
       </div>
     );

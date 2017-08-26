@@ -93,7 +93,7 @@ export default class QuestionFilter extends React.Component<QuestionFilterProps,
   }
 
   onEventSelect = (opt: Option) => {
-    this.props.eventStore.selectEvent(opt.value);
+    this.props.eventStore.selectEvent(opt ? opt.value : null);
   }
 
   onSortSelect = (opt: Option) => {

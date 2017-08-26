@@ -66,6 +66,7 @@ export default class EventStore {
   @action
   async fetchEvents() {
       const result = await this.api.read<Event[]>('events'); // tslint:disable-line
+      console.log('events: ', result);
       for (const e of result) {
         this.events.set(e._id, e);
       }

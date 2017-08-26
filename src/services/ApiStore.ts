@@ -113,7 +113,7 @@ export default class ApiStore {
   async fetch<ResponseType>(route: string, options?: RequestInit): Promise<ResponseType> {
     const APP_JSON = 'application/json';
     const defaults: RequestInit = {
-      headers: this.isLoggedIn ? {'Authorization': `JWT ${this.token}`} : {}, 
+      headers: this.isLoggedIn ? {Authorization: `JWT ${this.token}`} : {}, 
       mode: 'cors',
     };
     const opt = merge({}, defaults, options);
@@ -124,9 +124,10 @@ export default class ApiStore {
     }
     const response = await fetch(httpApiRoute(route), opt);
     if (!response.ok) {
+      // make sure that user data stays to date when making an invalid request
       if (response.status === 403 || response.status === 401) {
         this.logout();
-      } 
+      }
       let message = response.statusText;
       if (response.bodyUsed && response.headers.get('Content-Type').startsWith(APP_JSON)) {
         const body = await response.json();
@@ -155,7 +156,7 @@ export default class ApiStore {
   
   update<ResponseType>(resource: string, options?: RequestInit): Promise<ResponseType> {
     // make an 'intelligent' guess as to which update (PATCH/PUT) is used
-    let body = options.body;
+    const body = options.body;
     let method = 'PUT';
     // try to find that the json is an array without parsing it (because that is expensive!)
     if (Array.isArray(body) || (typeof body === 'string' && body[0] === '[')) {

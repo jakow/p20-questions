@@ -1,0 +1,26 @@
+@import '../../variables.pcss';
+:root {
+  --photoWidth: 3rem;
+}
+.speaker {
+  display: flex;
+  margin: 0 0 var(--verticalBaseline);
+  align-items: center;
+}
+
+.name {
+  font-size: 1.25rem;
+  line-height: 1.5rem;
+  font-weight: 300;
+  margin-left: 12px;
+
+}
+
+.photo {
+  width: var(--photoWidth);
+  border-radius: 50%;
+  overflow: hidden;
+  & > * {
+    transform: translate3d(0,0,0);
+  }
+}

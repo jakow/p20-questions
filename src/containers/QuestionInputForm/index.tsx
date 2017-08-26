@@ -42,10 +42,17 @@ export default class QuestionInputForm extends React.Component<QuestionInputForm
       errors: null,
     };
   }
+
+  componentWillReceiveProps(newPros: QuestionInputFormProps) {
+    if (!this.props.uiStore.questionInputOpen) {
+      // clear errors
+      this.showErrors(null);
+    }
+  }
   
   onSubmit = async (ev: React.FormEvent<HTMLFormElement | HTMLButtonElement>) => {
     ev.preventDefault();
-    const question = {...this.state.question};
+    const question = this.state.question;
     const errors = await this.props.questionStore.submitQuestion(question);
     if (errors) {
       this.showErrors(errors);
