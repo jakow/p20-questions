@@ -5,6 +5,7 @@ import Main from './components/Main';
 import Sidebar from './components/Sidebar';
 import QuestionInputPanel from './containers/QuestionInputPanel';
 import LoginModal from './containers/LoginModal';
+import AboutModal from './containers/AboutModal';
 import QuestionStore from './services/QuestionStore';
 import EventStore from './services/EventStore';
 import ApiStore from './services/ApiStore';
@@ -42,7 +43,8 @@ class App extends React.Component<null, null> {
         <Main/>
         <QuestionInputPanel/>
         <div className={style.modals} id="modals">
-          <LoginModal />
+          <LoginModal/>
+          <AboutModal/>
         </div>
       </div>
     </Provider>

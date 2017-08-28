@@ -9,6 +9,7 @@ import {Question} from '../../models/Question';
 import QuestionStore from '../../services/QuestionStore';
 import UiStore from '../../services/UiStore';
 import EventStore from '../../services/EventStore';
+
 const style = require('./QuestionInputForm.pcss');
 
 interface QuestionInputFormProps {
@@ -83,7 +84,19 @@ export default class QuestionInputForm extends React.Component<QuestionInputForm
   }
 
   onEventSelect = (opt: Option | null) => {
-    this.setState({question: {...this.state.question, forEvent: opt ? opt.value : null}});
+    const eventId = opt!.value;
+    const question = this.state.question;
+    question.forEvent = eventId;
+    let event;
+    if (eventId) {
+      event = this.props.eventStore.events.get(eventId);
+    }
+    // clear speaker selection
+    if (event != null && event.speakers.indexOf(this.state.question.toPerson as string) === -1) {
+      this.onSpeakerSelect(null);
+    }
+    this.setState({question});
+
   }
 
   onSpeakerSelect = (opt: Option) => {
@@ -101,9 +114,28 @@ export default class QuestionInputForm extends React.Component<QuestionInputForm
     }
   }
 
+  speakerOptions() {
+    const selectedEventId = this.state.question.forEvent as string;
+    let speakers = this.props.eventStore.speakerList;
+    if (selectedEventId) {
+      const selectedEvent = this.props.eventStore.events.get(selectedEventId);
+      speakers = speakers.filter(s => selectedEvent.speakers.indexOf(s._id) !== -1);
+    }
+    const options = speakers.map(s => ({ name: s.name, value: s._id }));
+    options.unshift({name: 'Any speaker', value: null});
+    return options;
+  }
+
+  eventOptions() {
+    const options = this.props.eventStore.eventList.map((e) => ({ name: e.name, value: e._id }));
+    options.unshift({name: 'Any event', value: null});
+    return options;
+  }
+
   render() {
     const question = this.state.question;
-    const {eventOptions, speakerOptions} = this.props.eventStore;
+    const eventOptions = this.eventOptions();
+    const speakerOptions = this.speakerOptions();
     const {validateQuestionText} = this.props.questionStore;
     return (
     <form className={style.questionForm} onSubmit={this.onSubmit}>

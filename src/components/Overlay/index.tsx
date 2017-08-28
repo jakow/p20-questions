@@ -20,14 +20,12 @@ export default function Overlay({show, children, onClick, className}: OverlayPro
   transitionAppear={true}
   transitionAppearTimeout={150}
   >
-    {show ? (
-      <div key="overlay" 
-      className={className || style.overlay}
-      onClick={onClick}>
-      {children || null}
-      </div>
-      ) : null}
+    { /* tslint:disable-next-line:jsx-no-multiline-js */
+      show ? (
+      <div key="overlay" className={className || style.overlay} onClick={onClick}>
+        {children || null}
+      </div>) : null
+    }
   </ReactCssTransitionGroup>
   );
-
 }

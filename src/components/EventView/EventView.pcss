@@ -1,12 +1,37 @@
 @import '../../variables.pcss';
 
 .event {
-  margin-bottom: var(--verticalBaseline);
+  margin: var(--verticalBaseline);
+  // padding: var(--verticalBaseline);
+}
+
+.header {
+  margin: 0 0 var(--verticalBaseline);
+  & h2 {
+    margin-top: 0;
+  }
 }
 
 
 .speakerList {
   list-style: none;
-  padding: 0 var(--verticalBaseline);
+  padding: 0;
   margin: 0 0 var(--verticalBaseline);
+}
+
+.name {
+  font-weight: 400;
+}
+
+.meta {
+  color: var(--textGray);  
+  margin-bottom: 0;
+}
+
+.description {
+  margin-top: calc(2 * var(--verticalBaseline));
+  font-weight: 300;
+  color: var(--textGray);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }

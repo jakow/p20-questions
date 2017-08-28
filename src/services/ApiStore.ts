@@ -40,7 +40,7 @@ export default class ApiStore {
   async login(username: string, password: string) {
     try {
       const result =  await this.post<LoginResponse>('login', {
-        body: {email: username, password: password},
+        body: {email: username, password},
       });
       this.user = result.user;
       this.setToken(result);

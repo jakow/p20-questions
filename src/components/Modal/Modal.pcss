@@ -1,36 +1,14 @@
 @import '../../variables.pcss';
 
 :root {
-  --buttonSize: 2.5rem;
+  --buttonSize: 1rem;
 }
-.modal {
+
+.base {
   border: 1px solid rgba(0, 0, 0, 0.12);
   background: white;
   min-width: 300px;
   position: relative;
-}
-
-.overlay {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  transition: opacity 200ms ease-in-out;
-  background-color: rgba(255,255,255,0.8);
-  opacity: 0;
-  z-index: 10000;
-}
-
-.overlay_afterOpen {
-  opacity: 1;
-}
-
-.overlay_beforeClose {
-  opacity: 0;
 }
 
 .header {
@@ -57,6 +35,7 @@
 
 .closeIcon {
   display: block;
-    width: var(--buttonSize);
+  background: url('../../../public/close-black.svg') center/var(--buttonSize) var(--buttonSize);
+  width: var(--buttonSize);
   height: var(--buttonSize);
 }

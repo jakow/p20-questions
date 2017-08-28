@@ -33,7 +33,6 @@ export default class Select extends React.Component<SelectProps, null> {
 
   onChange = (ev: React.ChangeEvent<HTMLSelectElement>) => {
     const value = ev.target.value || null;
-    console.log(value);
     if (this.props.onSelect) {
       let option;
       if (value === null) {
@@ -41,7 +40,6 @@ export default class Select extends React.Component<SelectProps, null> {
       } else {
         option = this.optionsOnly().find((o) => o.value === value || o.name === ev.target.value);
       }
-      console.log(option);
       this.props.onSelect(option);
     }
   }
